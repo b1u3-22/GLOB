@@ -14,10 +14,9 @@
 * [x] Ban Vote
 * [x] Role Creation
 * [x] Role Deletion
-* [ ] Role Assigment
+* [x] Role Assigment
 * [ ] Channel Creation
 * [ ] Channel Deletion
-* [ ] Channel Creation
 
 ### Fun
 

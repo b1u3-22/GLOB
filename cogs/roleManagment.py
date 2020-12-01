@@ -64,8 +64,6 @@ class roleManagment(commands.Cog):
                 add_role_field.add_field(name = f"Invalid color entered! Using random color.", value = f"Supported colors are: `yellow`, `orange`, `red`, `jungle`, `pine`, `steel`, `sappire`, `navy`, `electric`, `magenta`, `pink`")
                 await ctx.send(embed = add_role_field)
                 color = int("%06x" % random.randint(0, 0xFFFFFF), 16)
-                add_role_field = discord.Embed(colour = discord.Colour(0xFDED32))
-                add_role_field.set_author(name = "𝓡𝓸𝓵𝓮 𝓶𝓪𝓷𝓪𝓰𝓶𝓮𝓷𝓽")
 
         if len(permissions) != 0:
             for permission in permissions:
@@ -73,9 +71,6 @@ class roleManagment(commands.Cog):
                     await ctx.guild.create_role(name = role_name, colour = discord.Colour(color), permissions = discord.Permissions(administrator = True))
                     role = get(ctx.guild.roles, name = role_name)
                     add_role_field.add_field(name = f"New role named `{role}` created!", value = f"Everybody say thanks to {ctx.author.mention} for keeping everything managed!")
-                    await ctx.send(embed = add_role_field)
-                    add_role_field = discord.Embed(colour = discord.Colour(0xFDED32))
-                    add_role_field.set_author(name = "𝓡𝓸𝓵𝓮 𝓶𝓪𝓷𝓪𝓰𝓶𝓮𝓷𝓽")
                     for member in ctx.message.mentions:
                         await member.add_roles(role)
                         add_role_field.add_field(name = f"User added to role!", value = f"{member.mention} is now part of {role.mention}")
@@ -85,9 +80,6 @@ class roleManagment(commands.Cog):
                     await ctx.guild.create_role(name = role_name, colour = discord.Colour(color), permissions = discord.Permissions(104328768))
                     role = get(ctx.guild.roles, name = role_name)
                     add_role_field.add_field(name = f"New role named `{role}` created!", value = f"Everybody say thanks to {ctx.author.mention} for keeping everything managed!")
-                    await ctx.send(embed = add_role_field)
-                    add_role_field = discord.Embed(colour = discord.Colour(0xFDED32))
-                    add_role_field.set_author(name = "𝓡𝓸𝓵𝓮 𝓶𝓪𝓷𝓪𝓰𝓶𝓮𝓷𝓽")
                     for member in ctx.message.mentions:
                         await member.add_roles(role)
                         add_role_field.add_field(name = f"User added to role!", value = f"{member.mention} is now part of {role.mention}")
@@ -107,6 +99,20 @@ class roleManagment(commands.Cog):
             delete_role_field.add_field(name = f"Couldn't delete that role!", value = f"They are putting bigger fight than we thought they would!")
 
         await ctx.send(embed = delete_role_field)
+
+    @commands.command(name = "assignRole", aliases = ["assR", "asRole"])
+    async def assignRole(self, ctx, role: discord.Role):
+        assign_role_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        assign_role_field.set_author(name = "𝓡𝓸𝓵𝓮 𝓶𝓪𝓷𝓪𝓰𝓶𝓮𝓷𝓽")
+
+        if len(ctx.message.mentions) == 0:
+            assign_role_field.add_field(name = f"You have to mention users that you want to add!", value = f"You know.. Mention.. That thing with `@`")
+            await ctx.send(embed = assign_role_field)
+        else:
+            for member in ctx.message.mentions:
+                await member.add_roles(role)
+                assign_role_field.add_field(name = f"User added to role!", value = f"{member.mention} is now part of {role.mention}")
+            await ctx.send(embed = assign_role_field)
         
         
         

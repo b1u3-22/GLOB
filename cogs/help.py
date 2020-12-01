@@ -33,6 +33,7 @@ class _help(commands.Cog):
 
             help_field.add_field(name = f"{prefix}addRole", value = "Create roles quickly using this command, with random color gen and predefined permissions!", inline = False)
             help_field.add_field(name = f"{prefix}deleteRole", value = "You don't want particular role to exist? Delete it.", inline = False)
+            help_field.add_field(name = f"{prefix}assignRole", value = "Some users out of their boundaries or screaming to be managed into some role? Use this command!", inline = False)
 
             help_field.add_field(name = f"{prefix}changeNickname", value = "Quickly change or delete nicknames of user on your server!", inline = False)
 
@@ -58,9 +59,10 @@ class _help(commands.Cog):
             help_field.add_field(name = f"{prefix}hangmanDelete", value = f"Takes 0 arguments and it deletes current game of hangman \n You can type `{prefix}hd`, `{prefix}hstop`")
             help_field.add_field(name = f"{prefix}hangmanAddWord `word` `number`", value = f"Here argument `word` is obligatory and it should be the word you want to add to the databank of the hangman. While `number` is optional and it's the number of max wrong tries for this word. \n Command also works by typing `{prefix}haw`, `{prefix}hangmanAW`")
 
-        elif spec.lower() == "addrole" or spec.lower() == "deleterole" or spec.lower() == "role":
+        elif spec.lower() == "addrole" or spec.lower() == "deleterole" or spec.lower() == "role" or spec.lower() == "assignrole":
             help_field.add_field(name = f"{prefix}addRole `name` `color` `permissions`", value = f"This command purpose is to create roles efficiently. `name` is needed and it's the name of the role. `color` is optional and you can choose between 'yellow', 'orange', 'red', 'jungle', 'pine', 'steel', 'sappire', 'navy', 'electric', 'magenta', 'pink' or 'random', random one will be generated. And lastly with `permissions` you can choose between predefined ones: 'general', 'administrator', if none given 'general' will be used \n Summonable by `{prefix}addr`, `{prefix}aRole`")
             help_field.add_field(name = f"{prefix}deleteRole `@role`", value = f"Deletes the given `@role` and this argument is obligatory. \n Works also by typing `{prefix}delr`, `{prefix}dRole`")
+            help_field.add_field(name = f"{prefix}assignRole `@role` `@users`", value = f"Adds all `@users` to provided `@role`. Both of those arguments are necessary \n Works also by typing `{prefix}assR`, `{prefix}asRole`")
 
         elif spec.lower() == "ping" or spec.lower() == "changeprefix":
             help_field.add_field(name = f"{prefix}ping", value = f"This command takes zero arguments. It will return Pong with name of your server and latency")
