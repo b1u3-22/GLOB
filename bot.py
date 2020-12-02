@@ -102,7 +102,9 @@ async def ping(ctx):
 async def on_ready():
     conn = sqlite.connect("internal.db")
     for cog_file in os.listdir("./cogs"):
-        if cog_file.endswith(".py"):
+        if cog_file == "voice.py" or cog_file == "ytdl.py":
+            pass
+        elif cog_file.endswith(".py"):
             bot.load_extension(f"cogs.{cog_file[:-3]}")
 
     conn.execute(f"CREATE TABLE IF NOT EXISTS prefixes(id integer PRIMARY KEY, 'guild_id' INTEGER NOT NULL, 'prefix' TEXT NOT NULL)")

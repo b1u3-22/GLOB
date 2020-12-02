@@ -37,6 +37,13 @@ class _help(commands.Cog):
 
             help_field.add_field(name = f"{prefix}changeNickname", value = "Quickly change or delete nicknames of user on your server!", inline = False)
 
+            help_field.add_field(name = f"{prefix}join", value = "Want some friend in you voice channel? No problem, I'll join.", inline = False)
+            help_field.add_field(name = f"{prefix}leave", value = "Oh.. So.. You don't need me anymore?", inline = False)
+            help_field.add_field(name = f"{prefix}play", value = "If you want to jam to something, I'm the right person to ask.", inline = False)
+            help_field.add_field(name = f"{prefix}pause", value = "Somebody knocked on the door or is just generally annoying you while you listen to music? I got'ya", inline = False)
+            help_field.add_field(name = f"{prefix}resume", value = "When the time is right, you can resume your music and continue jammin'!", inline = False)
+            help_field.add_field(name = f"{prefix}stop", value = "Awful sounds coming from that bots mouth, I need to stop it!", inline = False)
+
             help_field.add_field(name = f"𝙉𝙚𝙚𝙙 𝙢𝙤𝙧𝙚 𝙞𝙣𝙛𝙤?", value = f"𝘛𝘺𝘱𝘦 {prefix}help `command` 𝘵𝘰 𝘨𝘦𝘵 𝘥𝘦𝘵𝘢𝘪𝘭𝘦𝘥 𝘥𝘦𝘴𝘤𝘳𝘪𝘱𝘵𝘪𝘰𝘯", inline = False)
 
         #_______________________________________________________________________________________________________________________________________________________________________________________________________________________________________
@@ -69,7 +76,7 @@ class _help(commands.Cog):
             help_field.add_field(name = f"{prefix}changePrefix `word`", value = f"This will change prefix on your server for this bot. Argument `word` is needed and it can be almost any character, word or sequence of characters \n Works also by typing `{prefix}cp`, `{prefix}cPrefix`, `{prefix}GlobChangePrefix`")
             help_field.add_field(name = f"globPrefix", value = f"Zero argument command that doesn't require you to type prefix. It's used to determinate what prefix is GLOB set on")
 
-        elif spec.lower() == "nick" or spec.lower() == "changenick":
+        elif spec.lower() == "nick" or spec.lower() == "changenick" or spec.lower() == "changenickname":
             help_field.add_field(name = f"changeNickname `nickname` `@users`", value = f"With this command you can quickly change nicknames of users. Takes 2 arguments. First `nickname` nickname that you want to change to and if ommited this command will erase users nick. `users` Needed argument that determinates what users should receive nickname or get nick erased. \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
 
         await ctx.send(embed = help_field)
