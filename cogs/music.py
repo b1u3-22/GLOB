@@ -13,6 +13,8 @@ class music(commands.Cog):
         self.bot = bot
         self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3'}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        self.loop = False
+        self.queue_counter = 0
         self.songs = queue.Queue()
         self.current_song = {}
 
@@ -33,6 +35,9 @@ class music(commands.Cog):
         if not self.songs.empty():
             self.current_song = self.songs.get()
             self.bot.loop.create_task(self.inform_user(ctx))
+            if self.loop:
+                self.songs.put(self.current_song)
+
             ctx.voice_client.play(FFmpegPCMAudio(self.current_song['track'], **self.FFMPEG_OPTIONS), after = lambda error : print(error) if error is not None else self.play_audio(ctx))
 
     async def inform_user(self, ctx):
@@ -53,7 +58,7 @@ class music(commands.Cog):
             await ctx.author.voice.channel.connect()
             music_field.add_field(name = f"Connected to your channel!", value = f"You can use `{get_prefix(self.bot, ctx.message)}play` to start some music")
             await ctx.send(embed = music_field)
-            info = self.get_audio_info("https://www.youtube.com/watch?v=hCiv9wphnME")
+            info = await self.get_audio_info("https://www.youtube.com/watch?v=hCiv9wphnME")
             ctx.voice_client.play(FFmpegPCMAudio(info['track'], **self.FFMPEG_OPTIONS))
 
         else:
@@ -132,7 +137,7 @@ class music(commands.Cog):
         await ctx.send(embed = music_field)
 
     @commands.command()
-    async def skip(self, ctx):
+    async def skip(self, ctx, index = False):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
 
@@ -140,11 +145,27 @@ class music(commands.Cog):
             music_field.add_field(name = "Nothing to be skipped!", value = f"It seems you have no songs playing nor in queue. Don't worry, use `{get_prefix(self.bot, ctx.message)}play` to play something!")
 
         else:
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused() and not index:
                 music_field.add_field(name = f"{self.current_song['title']} skipped!", value = f"You didn't like it, I see")
                 ctx.voice_client.stop()
 
         await ctx.send(embed = music_field)
+
+    @commands.command()
+    async def loop(self, ctx):
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        if self.loop:
+            self.loop = False
+            self.queue_counter = 0
+            music_field.add_field(name = "Song looping off!", value = f"You got tired of it, huh?")
+
+        else:
+            self.loop = True
+            music_field.add_field(name = "Loop turn on!", value = f"You really like ***this*** song, {ctx.author.mention}?")
+
+        await ctx.send(embed = music_field)
+
 
 
     @commands.command()
@@ -184,8 +205,6 @@ class music(commands.Cog):
                 music_field.add_field(name = f"They are no songs playing!", value = f"If you want to play a new song simply type `{get_prefix(self.bot, ctx.message)}play`")
 
             await ctx.send(embed = music_field)
-
-                    
 
 def setup(bot):
     bot.add_cog(music(bot))
