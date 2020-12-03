@@ -40,7 +40,7 @@ class music(commands.Cog):
             self.current_song = self.songs.pop(0)
             self.bot.loop.create_task(self.inform_user(ctx))
             if self.loop:
-                self.songs.put(self.current_song)
+                self.songs.append(self.current_song)
 
             ctx.voice_client.play(FFmpegPCMAudio(self.current_song['track'], **self.FFMPEG_OPTIONS), after = lambda error : print(error) if error is not None else self.play_audio(ctx))
 
