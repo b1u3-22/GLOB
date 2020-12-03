@@ -7,14 +7,15 @@ from youtube_dl import YoutubeDL
 from discord import FFmpegPCMAudio
 import asyncio
 import datetime
-
+import queue
 class music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3'}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        self.songs = queue.Queue()
 
-    def get_audio_info(self, song):
+    async def get_audio_info(self, song):
         if not song.lower().startswith("http://") or not song.lower().startswith("https://"):
             song = f"ytsearch:{song}"
 
@@ -22,17 +23,15 @@ class music(commands.Cog):
             info = ydl.extract_info(song, download = False)
 
         if info['entries'] != []:
-            title = info['entries'][0]['title']
-            creator = info['entries'][0]['creator']
-            duration = info['entries'][0]['duration']
-            likes = info['entries'][0]['like_count']
-            dislikes = info['entries'][0]['dislike_count']
-            track = info['entries'][0]['url']
-            return [track, title, creator, duration, likes, dislikes]
+            return {"track": info['entries'][0]['url'], "title": info['entries'][0]['title'], "artist": info['entries'][0]['creator'], "duration": datetime.timedelta(seconds = info['entries'][0]['duration']), "likes": info['entries'][0]['like_count'], "dislikes": info['entries'][0]['dislike_count']}
 
         else:
-            return False      
-    
+            return {}
+
+    def play_audio(self, ctx):
+        if not self.songs.empty():
+            ctx.voice_client.play(FFmpegPCMAudio(self.songs.get(), **self.FFMPEG_OPTIONS), after = lambda error : print(error) if error is not None else self.play_audio(ctx))
+
     @commands.command()
     async def join(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -42,7 +41,7 @@ class music(commands.Cog):
             music_field.add_field(name = f"Connected to your channel!", value = f"You can use `{get_prefix(self.bot, ctx.message)}play` to start some music")
             await ctx.send(embed = music_field)
             info = self.get_audio_info("https://www.youtube.com/watch?v=hCiv9wphnME")
-            ctx.voice_client.play(FFmpegPCMAudio(info[0], **self.FFMPEG_OPTIONS))
+            ctx.voice_client.play(FFmpegPCMAudio(info['track'], **self.FFMPEG_OPTIONS))
 
         else:
             await ctx.send("You have to be connected in voice channel")
@@ -68,19 +67,25 @@ class music(commands.Cog):
             if ctx.voice_client == None:
                 await ctx.author.voice.channel.connect()
 
-            info = self.get_audio_info(song)
-            if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                if info:
-                    player = ctx.voice_client.play(FFmpegPCMAudio(info[0], **self.FFMPEG_OPTIONS))
-                    await self.songs.put(player)
-                    music_field.title = f"{info[1]}"
-                    music_field.add_field(name = f"Created by {info[2]}", value = f"Duration: {str(datetime.timedelta(seconds = info[3]))}\n Likes: {info[4]}\n Dislikes: {info[5]}\n")
-                    await ctx.send(embed = music_field)
+            info = await self.get_audio_info(song)
 
-                else:
-                    music_field.title = f"{song}"
-                    music_field.add_field(name = f"I couldn't find any songs", value = f"Try to be less specific or enter an url")
+            music_field.title = f"{info['title']}"
+            music_field.add_field(name = f"`{info['artist']}`", value = f"Artist")
+            music_field.add_field(name = f"`{info['duration']}`", value = f"Duration")
+            music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
 
+            if self.songs.empty() and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+                music_field.add_field(name = f"Playing now!", value = f"***\n***")
+                self.songs.put(info['track'])
+                self.play_audio(ctx)
+                await ctx.send(embed = music_field)
+
+            else:
+                music_field.add_field(name = f"Added to queue", value = f"***\n***")
+                self.songs.put(info['track'])
+                await ctx.send(embed = music_field)
+
+                
     @commands.command()
     async def pause(self, ctx):
         if ctx.voice_client == None:
@@ -106,16 +111,26 @@ class music(commands.Cog):
                 await ctx.send("Already playing")
 
     @commands.command()
+    async def skip(self, ctx):
+        if ctx.voice_client == None:
+            await ctx.send("Nothing to be skipped")
+        else:
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+                ctx.voice_client.stop()
+                await ctx.send("Skipped")
+
+    @commands.command()
     async def stop(self, ctx):
         if ctx.voice_client == None:
-            await ctx.send("Nothing to be stopped")
-        else:
-            if ctx.voice_client.is_playing():
-                ctx.voice_client.stop()
-                await ctx.send("Stopped")
+            await ctx.send("I'm not even connected anywhere!")
 
-            else:
-                await ctx.send("I'm not playing anything")
+        else:
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+                with self.songs.mutex:
+                    self.songs.queue.clear()
+
+                ctx.voice_client.stop()
+                await ctx.send("Cleared your queue!")
 
 def setup(bot):
     bot.add_cog(music(bot))
