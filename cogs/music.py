@@ -7,7 +7,7 @@ from youtube_dl import YoutubeDL
 from discord import FFmpegPCMAudio
 import asyncio
 import datetime
-import queue
+
 class music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -15,7 +15,7 @@ class music(commands.Cog):
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         self.loop = False
         self.queue_counter = 0
-        self.songs = queue.Queue()
+        self.songs = []
         self.current_song = {}
 
     async def get_audio_info(self, song):
@@ -32,8 +32,12 @@ class music(commands.Cog):
             return {}
 
     def play_audio(self, ctx):
-        if not self.songs.empty():
-            self.current_song = self.songs.get()
+        if len(self.songs) > 0:
+
+            if self.loop and self.current_song == self.songs[0] and len(self.songs) > 1:
+                self.songs.append(self.songs.pop(0))
+
+            self.current_song = self.songs.pop(0)
             self.bot.loop.create_task(self.inform_user(ctx))
             if self.loop:
                 self.songs.put(self.current_song)
@@ -88,8 +92,9 @@ class music(commands.Cog):
             info = await self.get_audio_info(song)
             info['author'] = ctx.author
 
-            if self.songs.empty() and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                self.songs.put(info)
+            if len(self.songs) == 0 and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+                await ctx.send("test")
+                self.songs.append(info)
                 self.play_audio(ctx)
 
             else:
@@ -98,7 +103,7 @@ class music(commands.Cog):
                 music_field.add_field(name = f"`{info['duration']}`", value = f"Duration")
                 music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
                 music_field.add_field(name = f"Added to queue", value = f"***Sorry, somebody was faster than you.***")
-                self.songs.put(info)
+                self.songs.append(info)
                 await ctx.send(embed = music_field)
 
                 
@@ -137,7 +142,7 @@ class music(commands.Cog):
         await ctx.send(embed = music_field)
 
     @commands.command()
-    async def skip(self, ctx, index = False):
+    async def skip(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
 
@@ -145,7 +150,7 @@ class music(commands.Cog):
             music_field.add_field(name = "Nothing to be skipped!", value = f"It seems you have no songs playing nor in queue. Don't worry, use `{get_prefix(self.bot, ctx.message)}play` to play something!")
 
         else:
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused() and not index:
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 music_field.add_field(name = f"{self.current_song['title']} skipped!", value = f"You didn't like it, I see")
                 ctx.voice_client.stop()
 
@@ -163,10 +168,10 @@ class music(commands.Cog):
         else:
             self.loop = True
             music_field.add_field(name = "Loop turn on!", value = f"You really like ***this*** song, {ctx.author.mention}?")
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused and self.songs.empty():
+                self.songs.append(self.current_song)
 
         await ctx.send(embed = music_field)
-
-
 
     @commands.command()
     async def stop(self, ctx):
@@ -178,8 +183,7 @@ class music(commands.Cog):
 
         else:
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                with self.songs.mutex:
-                    self.songs.queue.clear()
+                self.songs.clear()
 
                 ctx.voice_client.stop()
                 music_field.add_field(name = "All songs from queue were purged!", value = f"To disconnect me use `{get_prefix(self.bot, ctx.message)}leave` or issue `{get_prefix(self.bot, ctx.message)}play` to play new songs!")
@@ -194,9 +198,9 @@ class music(commands.Cog):
         if ctx.voice_client:
             if ctx.voice_client.is_playing or ctx.voice_client.is_paused():
                 music_field.title = f"`Now playing` - {self.current_song['title']}"
-                if not self.songs.empty():
-                    for song in self.songs.queue:
-                        music_field.add_field(name = f"`{self.songs.queue.index(song) + 1}` - {song['title']} by `{song['artist']}`", value = f"Duration: `{song['duration']}` | Popularity: `{song['likes']}/{song['dislikes']}` | Requested by {song['author'].mention}", inline = False)
+                if self.songs:
+                    for song in self.songs:
+                        music_field.add_field(name = f"`{self.songs.index(song) + 1}` - {song['title']} by `{song['artist']}`", value = f"Duration: `{song['duration']}` | Popularity: `{song['likes']}/{song['dislikes']}` | Requested by {song['author'].mention}", inline = False)
 
                 else:
                     music_field.add_field(name = f"Author: `{self.current_song['artist']}`", value = f"Duration: `{self.current_song['duration']}` | Popularity: `{self.current_song['likes']}/{self.current_song['dislikes']}` | Requested by {self.current_song['author'].mention}")
@@ -205,6 +209,23 @@ class music(commands.Cog):
                 music_field.add_field(name = f"They are no songs playing!", value = f"If you want to play a new song simply type `{get_prefix(self.bot, ctx.message)}play`")
 
             await ctx.send(embed = music_field)
+
+    @commands.command()
+    async def remove(self, ctx, index):
+        index = int(index)
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+
+        if not self.songs and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+            music_field.add_field(name = "There is no existing queue", value = f"But you can use `{get_prefix(self.bot, ctx.message)}play` to play something!")
+
+        elif index - 1 > len(self.songs):
+            music_field.add_field(name = "This song doesn't exist in your queue", value = f"To remove all songs from the queue use `{get_prefix(self.bot, ctx.message)}stop`")
+
+        elif index - 1 <= len(self.songs) and index - 1 >= 0:
+            removed_song = self.songs.pop(index - 1)
+            music_field.add_field(name = f"{removed_song['title']} has been removed from your queue!", value = f"I bet nobody will miss it anyway")
+        await ctx.send(embed = music_field)
 
 def setup(bot):
     bot.add_cog(music(bot))
