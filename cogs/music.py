@@ -14,7 +14,6 @@ class music(commands.Cog):
         self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3'}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         self.loop = False
-        self.queue_counter = 0
         self.songs = []
         self.current_song = {}
 
@@ -93,7 +92,6 @@ class music(commands.Cog):
             info['author'] = ctx.author
 
             if len(self.songs) == 0 and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                await ctx.send("test")
                 self.songs.append(info)
                 self.play_audio(ctx)
 
@@ -103,7 +101,10 @@ class music(commands.Cog):
                 music_field.add_field(name = f"`{info['duration']}`", value = f"Duration")
                 music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
                 music_field.add_field(name = f"Added to queue", value = f"***Sorry, somebody was faster than you.***")
-                self.songs.append(info)
+                if self.loop:
+                    self.songs.insert(-1, info)
+                else:
+                    self.songs.append(info)
                 await ctx.send(embed = music_field)
 
                 
@@ -162,7 +163,6 @@ class music(commands.Cog):
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
         if self.loop:
             self.loop = False
-            self.queue_counter = 0
             music_field.add_field(name = "Song looping off!", value = f"You got tired of it, huh?")
 
         else:
@@ -225,6 +225,35 @@ class music(commands.Cog):
         elif index - 1 <= len(self.songs) and index - 1 >= 0:
             removed_song = self.songs.pop(index - 1)
             music_field.add_field(name = f"{removed_song['title']} has been removed from your queue!", value = f"I bet nobody will miss it anyway")
+        await ctx.send(embed = music_field)
+
+    @commands.command()
+    async def move(self, ctx, index_of_song, desired_position):
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        index_of_song = int(index_of_song) - 1
+        desired_position = int(desired_position) - 1
+        if index_of_song >= 0 and desired_position >= 0:
+            if index_of_song > len(self.songs):
+                music_field.add_field(name = f"There is no song on position `{index_of_song + 1}`", value = f"Did you want to skip? Use `{get_prefix(bot, ctx.message)}skip` Don't worry, if you have loop enabled the song will stay in queue")
+
+            else:
+                if desired_position > len(self.songs) - 1:
+                    self.songs.append(self.songs.pop(index_of_song))
+                    music_field.add_field(name = f"Song `{self.songs[-1]['title']}` was moved to the end of queue from position `{index_of_song + 1}`", value = f"This happened because you entered number greater than the index of last song")
+                
+                else:
+                    self.songs.insert(desired_position, self.songs.pop(index_of_song))
+                    music_field.add_field(name = f"I have moved `{self.songs[desired_position]['title']}`from position `{index_of_song + 1}` to `{desired_position + 1}`", value = f"I hope I got it right!")
+
+        await ctx.send(embed = music_field)
+
+    @commands.command()
+    async def now(self, ctx):
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        music_field.title = f"`Now playing` - {self.current_song['title']}"
+        music_field.add_field(name = f"Author: `{self.current_song['artist']}`", value = f"Duration: `{self.current_song['duration']}` | Popularity: `{self.current_song['likes']}/{self.current_song['dislikes']}` | Requested by {self.current_song['author'].mention}")
         await ctx.send(embed = music_field)
 
 def setup(bot):
