@@ -357,7 +357,6 @@ class music(commands.Cog):
                     if song[i] == "":
                         song.pop(i)
                 song_titles.append(song[1])
-                print(song_titles)
 
             self.songs.clear
             if not ctx.voice_client:
@@ -368,6 +367,10 @@ class music(commands.Cog):
                 song['author'] = ctx.guild.get_member(user_id)
                 self.songs.append(song)
                 self.play_audio(ctx)
+                music_field.add_field(name = f"Loading rest of the songs, please wait.", value = f"Youtube links to audio files don't last forever, I have to search for everysong in your playlist again. Please be patient")
+                await ctx.send(embed = music_field)
+                music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+                music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
                 for i in range(1, len(song_titles)):
                     song = await self.get_audio_info(song_titles[i])
                     song['author'] = ctx.guild.get_member(user_id)
