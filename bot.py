@@ -111,6 +111,8 @@ async def on_ready():
     print("Created prefix table")
     conn.execute(f"CREATE TABLE IF NOT EXISTS hangmans('id' INTEGER PRIMARY KEY, 'guild_id' TEXT NOT NULL, 'word' TEXT NOT NULL, 'current_tries' INTEGER NOT NULL, 'max_tries' INTEGER NOT NULL, 'guessed_word' TEXT)")
     print("Created table for hangmans")
+    conn.execute(f"CREATE TABLE IF NOT EXISTS playlists(id integer PRIMARY KEY, 'user_id' INTEGER NOT NULL, 'name' TEXT NOT NULL, 'songs' TEXT NOT NULL)")
+    print("Created prefix table")
     conn.commit()
 
     if len(conn.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='hangman_word_list'").fetchall()) == 0:
