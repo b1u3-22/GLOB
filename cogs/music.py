@@ -54,7 +54,7 @@ class music(commands.Cog):
         await ctx.send(embed = music_field)
 
     @commands.command()
-    async def join(self, ctx, hello):
+    async def join(self, ctx, hello = False):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
         if ctx.author.voice:
@@ -350,27 +350,34 @@ class music(commands.Cog):
         if len(data) != 0:
             songs = data[0][3].split("||")
             user_id = data[0][1]
-            songs_to_send = []
+            song_titles = []
             for song in songs:
                 song = song.split("|")
                 for i in range(len(song) - 1):
                     if song[i] == "":
                         song.pop(i)
-                song = {'track': song[0], 'title': song[1], 'artist': song[2], 'duration': float(song[3]), 'likes': int(song[4]), 'dislikes': int(song[5]), 'author': ctx.guild.get_member(user_id)}
-                songs_to_send.append(song)
+                song_titles.append(song[1])
+                print(song_titles)
 
-            self.songs.clear()
-            for song in songs_to_send:
+            self.songs.clear
+            if not ctx.voice_client:
+                await ctx.author.voice.channel.connect()
+
+            if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
+                song = await self.get_audio_info(song_titles[0])
+                song['author'] = ctx.guild.get_member(user_id)
                 self.songs.append(song)
-
-            self.loop = True
-            if ctx.voice_client:
-                if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                    self.play_audio(ctx)
+                self.play_audio(ctx)
+                for i in range(1, len(song_titles)):
+                    song = await self.get_audio_info(song_titles[i])
+                    song['author'] = ctx.guild.get_member(user_id)
+                    self.songs.append(song)
 
             else:
-                await ctx.author.voice.channel.connect()
-                self.play_audio(ctx)
+                for i in range(len(song_titles) - 1):
+                    song = await self.get_audio_info(song_titles[i])
+                    song['author'] = ctx.guild.get_member(user_id)
+                    self.songs.append(song)
 
             music_field.add_field(name = f"Replaced your queue with songs from playlist `{name}`", value = f"If you add any songs to your queue, you can update your playlist using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} update`")
 
