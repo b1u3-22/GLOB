@@ -6,6 +6,10 @@
 * Managed with *Cog* system, so you can add other modules
 * You can also unload modules that you don't want
 
+## Join us or Invite GLOB!
+
+[<img src="resources/server_icon.png" width = "100" height = "100">](https://discord.gg/d4Fwf5Gu9b) [<img src="resources/glob_icon.png" width = "100" height = "100">](https://discord.com/api/oauth2/authorize?client_id=781629601105444946&permissions=502791286&scope=bot)
+
 ## Current features
 
 ### Managment
@@ -28,11 +32,11 @@
 
 #### Music Player
 
-* Play a game where all your server user can try to guess a word!
-* [ ] Start a Song
-* [ ] Stop a Song
-* [ ] Ban Song
-* [ ] Add Song to playlist that saves to database
+* Be able to play your favourite songs
+* [x] Start a Song
+* [x] Stop a Song
+* [x] Ban Song
+* [x] Add Song to playlist that saves to database
 
 ##### Meme generation
 
