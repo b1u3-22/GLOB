@@ -11,13 +11,13 @@ import datetime
 class music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3'}
+        self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3', 'rm-cache-dir': True}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         self.loop = False
         self.songs = []
         self.current_song = {}
 
-    async def get_audio_info(self, song):
+    def get_audio_info(self, song):
         if not song.lower().startswith("http://") or not song.lower().startswith("https://"):
             song = f"ytsearch:{song}"
 
@@ -41,7 +41,7 @@ class music(commands.Cog):
             if self.loop:
                 self.songs.append(self.current_song)
 
-            ctx.voice_client.play(FFmpegPCMAudio(self.current_song['track'], **self.FFMPEG_OPTIONS), after = lambda error : print(error) if error is not None else self.play_audio(ctx))
+            ctx.voice_client.play(FFmpegPCMAudio(self.get_audio_info(self.current_song['title'])['track'], **self.FFMPEG_OPTIONS), after = lambda error: print(error) if error is not None else self.play_audio(ctx))
 
     async def inform_user(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -62,7 +62,7 @@ class music(commands.Cog):
             music_field.add_field(name = f"Connected to your channel!", value = f"You can use `{get_prefix(self.bot, ctx.message)}play` to start some music")
             await ctx.send(embed = music_field)
             if hello:
-                info = await self.get_audio_info("https://www.youtube.com/watch?v=hCiv9wphnME")
+                info = self.get_audio_info("https://www.youtube.com/watch?v=hCiv9wphnME")
                 ctx.voice_client.play(FFmpegPCMAudio(info['track'], **self.FFMPEG_OPTIONS))
 
         else:
@@ -89,7 +89,7 @@ class music(commands.Cog):
             if ctx.voice_client == None:
                 await ctx.author.voice.channel.connect()
 
-            info = await self.get_audio_info(song)
+            info = self.get_audio_info(song)
             info['author'] = ctx.author
 
             if len(self.songs) == 0 and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
@@ -285,7 +285,7 @@ class music(commands.Cog):
                     song_to_save += "|" + str(self.current_song[value])
                 song_to_save += "|"
             else:
-                info = await self.get_audio_info(song_name)
+                info = self.get_audio_info(song_name)
                 for value in info:
                     song_to_save += "|" + str(info[value])
                 song_to_save += "|"
@@ -350,37 +350,24 @@ class music(commands.Cog):
         if len(data) != 0:
             songs = data[0][3].split("||")
             user_id = data[0][1]
-            song_titles = []
+            songs_to_play = []
             for song in songs:
                 song = song.split("|")
                 for i in range(len(song) - 1):
                     if song[i] == "":
                         song.pop(i)
-                song_titles.append(song[1])
+                songs_to_play.append(song)
 
             self.songs.clear
             if not ctx.voice_client:
                 await ctx.author.voice.channel.connect()
 
-            if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
-                song = await self.get_audio_info(song_titles[0])
-                song['author'] = ctx.guild.get_member(user_id)
-                self.songs.append(song)
-                self.play_audio(ctx)
-                music_field.add_field(name = f"Loading rest of the songs, please wait.", value = f"Youtube links to audio files don't last forever, I have to search for everysong in your playlist again. Please be patient")
-                await ctx.send(embed = music_field)
-                music_field = discord.Embed(colour = discord.Colour(0xFDED32))
-                music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-                for i in range(1, len(song_titles)):
-                    song = await self.get_audio_info(song_titles[i])
-                    song['author'] = ctx.guild.get_member(user_id)
-                    self.songs.append(song)
+            for song in songs_to_play:
+                song_to_add = {'track': song[0], 'title': song[1], 'artist': song[2], 'duration': float(song[3]), 'likes': int(song[4]), 'dislikes': int(song[5]), 'author': ctx.guild.get_member(ctx.author.id)}
+                self.songs.append(song_to_add)
 
-            else:
-                for i in range(len(song_titles) - 1):
-                    song = await self.get_audio_info(song_titles[i])
-                    song['author'] = ctx.guild.get_member(user_id)
-                    self.songs.append(song)
+            if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
+                self.play_audio(ctx)
 
             music_field.add_field(name = f"Replaced your queue with songs from playlist `{name}`", value = f"If you add any songs to your queue, you can update your playlist using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} update`")
 
