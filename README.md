@@ -10,47 +10,63 @@
 
 [<img src="resources/server_icon.png" width = "100" height = "100">](https://discord.gg/d4Fwf5Gu9b) [<img src="resources/glob_icon.png" width = "100" height = "100">](https://discord.com/api/oauth2/authorize?client_id=781629601105444946&permissions=502791286&scope=bot)
 
-## Current features
+## *Cog* management
+* All modules are stored in `GLOB/cogs`
+* If you don't want to use certain modules you can just delete them from there
+* Same applies for adding your own modules
+### Reloading, loading and unloading *cogs*
+* GLOB has these functions programmed as commands
+* To **reload** *cog*
+  * `.reload {cog_name}` 
+* To **load** *cog*
+  * `.load {cog_name}` 
+* To **unload** *cog*
+  * `.unload {cog_name}` 
 
-### Managment
-
-* [x] Kick Vote
-* [x] Ban Vote
-* [x] Role Creation
-* [x] Role Deletion
-* [x] Role Assigment
-* [ ] Channel Creation
-* [ ] Channel Deletion
-
+## Short feature list
+### Music
+* Play, Pause and Stop songs
+* Create Playlist that can be loaded anytime from database
+* Queue songs, change their position in queue or skip them
+* Tell GLOB to send you the currently playing song to DMs
 ### Fun
+* Hangman game
+* Images from Reddit
+  * Predefined commands to get images from `r/cats`, `r/Birbs` and some others
+  * You can get random image from any subreddit using `.subreddit {subreddit name}` 
+* Write down things that somebody has said with `citation` *cog*
+### Management
+* Votekick and voteban
+* Change roles and nicknames
+* Make announcements
+  * GLOB let's you create messages formated in *embeds* and sends them to channel that's configured as **Announcement channel**
 
-#### Citations
+## How to selfhost GLOB
+### With venv or on its own
+1) Clone this repository
+  * `git clone https://github.com/Simpleton-Yogy/GLOB.git`
+2) Create `.env` file
+  * `cd GLOB`
+  * `nano .env`
+  * Things needed in .env:
+    * `DISCORD_TOKEN`
+  * If you are using the `reddit` *cog*:
+    * `REDDIT_USERNAME`
+      * Username of your Reddit Account  
+    * `REDDIT_ID`
+      * ID of application creeated in [Reddit settings](https://www.reddit.com/prefs/apps/) 
+    * `REDDIT_PASSWORD`
+      * Password to your Reddit Account 
+    * `REDDIT_SECRET`
+      * Secret that can be found in your app created in the Reddit Settings
+    * `REDDIT_USERAGENT`
+      * Description of service that would be making requests
+      * For example: `Discord_Bot_GLOBv1_(by u/RedditUser)`
+3) Install requirements
+  * `pip install -r requirements.txt`
+4) Start GLOB
+  * `python bot.py`
 
-* Save some funny or life changing quotes to database and be able to retrieve it at anytime!
-* [x] Save Quote
-* [x] Cite Somebody
+### Using Docker
+* Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker
 
-#### Music Player
-
-* Be able to play your favourite songs
-* [x] Start a Song
-* [x] Stop a Song
-* [x] Ban Song
-* [x] Add Song to playlist that saves to database
-
-##### Meme generation
-
-* Give a bot two photos, name of template and he'll generate meme for you!
-* [ ] Generate meme based on photo
-* [ ] Save memes
-* [ ] Add teplate to database
-
-#### Games
-
-##### Hangman
-
-* Play a game where all your server user can try to guess a word!
-* [x] Start a Game
-* [x] Stop a Game
-* [x] Guess a Word
-* [x] Add Word to Databank
