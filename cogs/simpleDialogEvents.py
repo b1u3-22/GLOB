@@ -8,7 +8,7 @@ class simpleDialogEvents(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.apeResponses = ["What did you say you lil punk?", "I can do more calculation a second than you in your whole life!", "If I'm an ape, then you are a banana!"]
+        self.apeResponses = ["What did you say you lil punk?", "I can do more calculation a second than you in your whole life!", "If I'm an ape, then you are a banana!", "You're so ugly, when your mom dropped you off at school she got a fine for littering.", "Please shut your mouth when you’re talking to me.", "I'd slap you, but that would be animal abuse.", "Shock me, say something intelligent.", "Are you always this stupid or is today a special occasion?"]
 
     @commands.Cog.listener()
     async def on_message(self, message):
