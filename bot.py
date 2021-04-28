@@ -6,7 +6,7 @@ from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 import sqlite3 as sqlite
 import random as random
-from discord_slash import SlashCommand
+#from discord_slash import SlashCommand
 
 load_dotenv()
 
@@ -27,7 +27,7 @@ def get_prefix(bot, message):
     conn.close()
 
 bot = commands.Bot(command_prefix = get_prefix, intents = intents)
-slash = SlashCommand(bot)
+#slash = SlashCommand(bot)
 bot.remove_command("help")
 
 #@slash.slash(name="load")

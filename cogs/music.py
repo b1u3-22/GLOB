@@ -7,7 +7,7 @@ from youtube_dl import YoutubeDL
 from discord import FFmpegPCMAudio
 import asyncio
 import datetime
-from discord_slash import cog_ext, SlashContext
+#from discord_slash import cog_ext, SlashContext
 
 class music(commands.Cog):
     def __init__(self, bot):
