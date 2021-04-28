@@ -17,11 +17,11 @@
 ### Reloading, loading and unloading *cogs*
 * GLOB has these functions programmed as commands
 * To **reload** *cog*
-  * `.reload {cog_name}` 
+  * `.reload {cog_name}`
 * To **load** *cog*
-  * `.load {cog_name}` 
+  * `.load {cog_name}`
 * To **unload** *cog*
-  * `.unload {cog_name}` 
+  * `.unload {cog_name}`
 
 ## Short feature list
 ### Music
@@ -70,3 +70,38 @@
 ### Using Docker
 * Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker
 
+In both instances, you need to at least set the `DISCORD_TOKEN` variable and choose a place to store GLOB's data using a mount point. GLOB stores its data in `/GLOB/data`, so you can bind-mount that wherever you want.
+
+#### Vanilla Docker
+
+```
+docker run \
+ -e DISCORD_TOKEN="your_discord_token" \
+ -e REDDIT_USERNAME="meeeeee" \
+ -e REDDIT_ID="smt" \
+ -e REDDIT_PASSWORD="VerySecret" \
+ -e REDDIT_SECRET="MoreSecret" \
+ -e REDDIT_USERAGENT="NetScape-Navigator" \
+ --mount type=bind,source=/your/datadir,target=/GLOB/data \
+ satcom886/glob
+```
+
+#### Using `docker-compose`
+
+```yaml
+version: "3.5"
+services:
+  glob:
+    image: satcom886/glob
+    ## Uncomment to auto-start
+    # restart: unless-stopped
+    volumes:
+      - /your/data:/GLOB/data
+    environment:
+      DISCORD_TOKEN="your_discord_token"
+      REDDIT_USERNAME="meeeeee"
+      REDDIT_ID="smt"
+      REDDIT_PASSWORD="VerySecret"
+      REDDIT_SECRET="MoreSecret"
+      REDDIT_USERAGENT="NetScape-Navigator"
+```
