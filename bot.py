@@ -6,12 +6,11 @@ from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 import sqlite3 as sqlite
 import random as random
+import apraw
 #from discord_slash import SlashCommand
 
 load_dotenv()
-
 TOKEN = os.getenv('DISCORD_TOKEN')
-
 intents = discord.Intents.default()
 intents.members = True
 
@@ -28,6 +27,7 @@ def get_prefix(bot, message):
 
 bot = commands.Bot(command_prefix = get_prefix, intents = intents)
 #slash = SlashCommand(bot)
+
 bot.remove_command("help")
 
 #@slash.slash(name="load")
