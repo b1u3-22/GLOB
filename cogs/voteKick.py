@@ -16,7 +16,7 @@ class voteKick(commands.Cog):
     async def voteKick(self, ctx, name = None, count = 3):
 
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_votekick"
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
 
         if len(ctx.message.mentions) == 0:
             await ctx.send("***You didn't specify whome to start kick vote against!***")
@@ -76,7 +76,7 @@ class voteKick(commands.Cog):
     async def resetVoteKick(self, ctx):
 
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_votekick"
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
 
         if len(conn.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{guild}'").fetchall()) == 0:
             await ctx.send("***There is no kick vote going on right now***")
@@ -113,7 +113,7 @@ def setup(bot):
     bot.add_cog(voteKick(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:

@@ -28,7 +28,7 @@ def setup(bot):
     bot.add_cog(simpleDialogEvents(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:

@@ -15,7 +15,7 @@ intents = discord.Intents.default()
 intents.members = True
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:
@@ -89,7 +89,7 @@ async def reload(ctx, extension):
 #@slash.slash(name="changePrefix")
 @bot.command(name = "changePrefix", aliases = ["cP", "cPrefix", "GlobChangePrefix", "cp"])
 async def changePrefix(ctx, prefix):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     conn.execute(f"UPDATE prefixes SET prefix = '{prefix}' WHERE guild_id = {ctx.guild.id}")
     conn.commit()
     await ctx.send(f"Prefix changed to ***{prefix}***")
@@ -107,7 +107,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_ready():
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     for cog_file in os.listdir("./cogs"):
         if cog_file.endswith(".py"):
             bot.load_extension(f"cogs.{cog_file[:-3]}")
@@ -135,7 +135,7 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     conn.execute(f"INSERT INTO prefixes VALUES(NULL, ?, ?)", (guild.id, "."))
     conn.commit()
     print("Successfully added prefix for new guild")
@@ -143,7 +143,7 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_guild_remove(guild):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     conn.execute(f"DELETE FROM prefixes WHERE guild_id = {guild.id}")
     conn.commit()
     print("Successfully removed guild prefix")
