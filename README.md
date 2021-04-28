@@ -33,7 +33,7 @@
 * Hangman game
 * Images from Reddit
   * Predefined commands to get images from `r/cats`, `r/Birbs` and some others
-  * You can get random image from any subreddit using `.subreddit {subreddit name}` 
+  * You can get random image from any subreddit using `.subreddit {subreddit name}`
 * Write down things that somebody has said with `citation` *cog*
 ### Management
 * Votekick and voteban
@@ -52,11 +52,11 @@
     * `DISCORD_TOKEN`
   * If you are using the `reddit` *cog*:
     * `REDDIT_USERNAME`
-      * Username of your Reddit Account  
+      * Username of your Reddit Account
     * `REDDIT_ID`
-      * ID of application creeated in [Reddit settings](https://www.reddit.com/prefs/apps/) 
+      * ID of application created in [Reddit settings](https://www.reddit.com/prefs/apps/)
     * `REDDIT_PASSWORD`
-      * Password to your Reddit Account 
+      * Password to your Reddit Account
     * `REDDIT_SECRET`
       * Secret that can be found in your app created in the Reddit Settings
     * `REDDIT_USERAGENT`
@@ -69,7 +69,6 @@
 
 ### Using Docker
 * Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker
-* Description in how to do that is provided by satcom886 himself below 
 
 In both instances, you need to at least set the `DISCORD_TOKEN` variable and choose a place to store GLOB's data using a mount point. GLOB stores its data in `/GLOB/data`, so you can bind-mount that wherever you want.
 
@@ -97,12 +96,12 @@ services:
     ## Uncomment to auto-start
     # restart: unless-stopped
     volumes:
-      - /your/data:/GLOB/data
+      - /your/datadir:/GLOB/data
     environment:
-      DISCORD_TOKEN="your_discord_token"
-      REDDIT_USERNAME="meeeeee"
-      REDDIT_ID="smt"
-      REDDIT_PASSWORD="VerySecret"
-      REDDIT_SECRET="MoreSecret"
-      REDDIT_USERAGENT="NetScape-Navigator"
+      DISCORD_TOKEN: "your_discord_token"
+      REDDIT_USERNAME: "meeeeee"
+      REDDIT_ID: "smt"
+      REDDIT_PASSWORD: "VerySecret"
+      REDDIT_SECRET: "MoreSecret"
+      REDDIT_USERAGENT: "Netscape-Navigator"
 ```
