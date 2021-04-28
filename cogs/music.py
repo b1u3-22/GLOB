@@ -293,7 +293,7 @@ class music(commands.Cog):
     async def addToPlaylist(self, ctx, name, *, song_name = None):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         song_to_save = ""
         if self.current_song == {} and song_name is None:
             music_field.add_field(name = f"You have to specify what song!", value = f"I can't add nothing to playlist..")
@@ -345,7 +345,7 @@ class music(commands.Cog):
     async def updatePlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         playlists = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}' AND user_id = '{ctx.author.id}'").fetchall()
         if len(playlists) == 0:
             music_field.add_field(name = f"Couldn't find any playlists under the name `{name}`", value = f"But you can create it! Using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
@@ -369,7 +369,7 @@ class music(commands.Cog):
     async def playPlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         if len(ctx.message.mentions) == 0:
             data = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}'").fetchall()
 
@@ -413,7 +413,7 @@ class music(commands.Cog):
     async def displayPlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         if len(ctx.message.mentions) == 0:
             data = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}'").fetchall()
 
@@ -481,7 +481,7 @@ def setup(bot):
     bot.add_cog(music(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:

@@ -14,7 +14,7 @@ class citations(commands.Cog):
     @commands.command(name = "writeThatDown", aliases = ["wtd", "CiteIt", "citeit", "writeD", "wd"])
     async def writeThatDown(self, ctx, text, author = None, name = None):
 
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         text = text.replace(" ", "_").replace(",", "_").replace("'", "___")
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_citations"
 
@@ -39,7 +39,7 @@ class citations(commands.Cog):
     @commands.command(name = "whatDidYouSay", aliases = ["wdys", "Cite", "cite", "what", "ws"]) 
     async def whatDidYouSay(self, ctx, author = None, name = None):
 
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_citations"
 
         if name != None:
@@ -81,7 +81,7 @@ def setup(bot):
     bot.add_cog(citations(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:

@@ -15,7 +15,7 @@ class voteBan(commands.Cog):
     @has_permissions(ban_members = True)
     async def voteBan(self, ctx, name = None, count = 5):
 
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_voteban"
 
         if len(ctx.message.mentions) == 0:
@@ -76,7 +76,7 @@ class voteBan(commands.Cog):
     async def resetVoteBan(self, ctx):
 
         guild = ctx.guild.name.replace("'", "").replace(" ", "_") + "_voteban"
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
 
         if len(conn.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{guild}'").fetchall()) == 0:
             await ctx.send("***There is no ban vote going on right now***")
@@ -112,7 +112,7 @@ def setup(bot):
     bot.add_cog(voteBan(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:

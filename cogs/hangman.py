@@ -11,7 +11,7 @@ class hangman(commands.Cog):
 
     @commands.command(name = "hangmanGuess", aliases = ["hG", "hg", "h", "hangmanG", "HG"])
     async def hangmanGuess(self, ctx, letter):
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         letter = letter.lower()
         hangman_guess_field = discord.Embed(colour = discord.Colour(0xFDED32))
         hangman_guess_field.set_author(name = "𝓗𝓪𝓷𝓰𝓶𝓪𝓷")
@@ -85,7 +85,7 @@ class hangman(commands.Cog):
 
     @commands.command(name = "hangmanStart", aliases = ["hS", "hs", "hangmanS", "HS", "hangmans"])
     async def hangmanStart(self, ctx, word = None, max_tries = 10):
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         hangman_start_field = discord.Embed(colour = discord.Colour(0xFDED32))
         hangman_start_field.set_author(name = "𝓗𝓪𝓷𝓰𝓶𝓪𝓷")
         guessed_word = ""
@@ -123,7 +123,7 @@ class hangman(commands.Cog):
 
     @commands.command(name = "hangmanDelete", aliases = ["hD", "hd", "hstop", "hangmanD", "HD"])
     async def hangmanDelete(self, ctx):
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         hangman_delete_field = discord.Embed(colour = discord.Colour(0xFDED32))
         hangman_delete_field.set_author(name = "𝓗𝓪𝓷𝓰𝓶𝓪𝓷")
 
@@ -140,7 +140,7 @@ class hangman(commands.Cog):
             
     @commands.command(name = "hangmanAddWord", aliases = ["haw", "hangmanAW", "hangmanaw"])
     async def hangmanAddWord(self, ctx, word, max_tries = 5):
-        conn = sqlite.connect("internal.db")
+        conn = sqlite.connect("data/internal.db")
         word = word.replace("'", "").replace(" ", "").replace(",", "")
         wordList = conn.execute(f"SELECT * FROM hangman_word_list").fetchall()[0]
         hangman_add_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -159,7 +159,7 @@ def setup(bot):
     bot.add_cog(hangman(bot))
 
 def get_prefix(bot, message):
-    conn = sqlite.connect("internal.db")
+    conn = sqlite.connect("data/internal.db")
     try:
         return conn.execute(f"SELECT * FROM prefixes WHERE guild_id = {message.guild.id}").fetchall()[0][2]
     except:
