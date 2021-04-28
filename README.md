@@ -69,6 +69,7 @@
 
 ### Using Docker
 * Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker
+* Description in how to do that is provided by satcom886 himself below 
 
 In both instances, you need to at least set the `DISCORD_TOKEN` variable and choose a place to store GLOB's data using a mount point. GLOB stores its data in `/GLOB/data`, so you can bind-mount that wherever you want.
 
