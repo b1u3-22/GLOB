@@ -122,7 +122,7 @@ class _help(commands.Cog):
             help_field.add_field(name = f"{prefix}remove `number`", value = f"If queue exist remove will take obligatory argument `number` and will remove the song from queue even if loop is set to True.") # \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
             help_field.add_field(name = f"{prefix}queue", value = f"Information command that will provide you with list of current playing song and all the songs in queue and their order numbers in queue. If no queue exists it will only provide you info about the current song") # \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
             help_field.add_field(name = f"{prefix}move `song` `position`", value = f"Takes two arguments `song` is the position of the song you want to move while the `position` argument determines where you want to put that song. If position is greater than number of songs in queue, song will be moved to the last position") # \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
-            help_field.add_field(name = f"{prefix}grab", value = "Doesn't reaquire any additional arguments but requires GLOB to be playing something or have paused song in queue. It will send you basic info about the playing song along with a Youtube link", inline = False)
+            help_field.add_field(name = f"{prefix}grab", value = "Doesn't reaquire any additional arguments but requires GLOB to be playing something or have paused song in queue. It will send you basic info about the playing song along with a Youtube link")
             await ctx.send(embed = help_field)
 
 def setup(bot):
