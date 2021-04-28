@@ -1,9 +1,18 @@
-FROM alpine:latest
+FROM alpine:latest AS builder
 
-RUN apk add python3 py3-dotenv py3-pip py3-multidict py3-yarl youtube-dl
-RUN pip3 install discord.py
+RUN apk add python3 py3-pip py3-virtualenv gcc make musl-dev python3-dev libffi-dev
 
 WORKDIR /GLOB
 COPY . .
 
-CMD ["python3", "bot.py"]
+RUN python3 -m venv env
+RUN source env/bin/activate && pip3 install -r requirements.txt
+
+
+FROM alpine:latest
+RUN apk add python3 py3-virtualenv ffmpeg
+
+COPY --from=builder /GLOB /GLOB
+WORKDIR /GLOB
+
+CMD ["sh", "-c", "source env/bin/activate && python3 bot.py"]
