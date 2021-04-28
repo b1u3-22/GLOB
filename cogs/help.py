@@ -71,6 +71,19 @@ class _help(commands.Cog):
             help_field.add_field(name = f"{prefix}grab", value = "You really like the song that is playing? I can send it to you in DM", inline = False)
             help_field.add_field(name = f"𝙉𝙚𝙚𝙙 𝙢𝙤𝙧𝙚 𝙞𝙣𝙛𝙤?", value = f"𝘛𝘺𝘱𝘦 {prefix}help `command` 𝘵𝘰 𝘨𝘦𝘵 𝘥𝘦𝘵𝘢𝘪𝘭𝘦𝘥 𝘥𝘦𝘴𝘤𝘳𝘪𝘱𝘵𝘪𝘰𝘯", inline = False)
             await ctx.send(embed = help_field)
+
+            help_field = discord.Embed(colour = discord.Colour(0xFDED32))
+            help_field.set_author(name = "𝓗𝓮𝓵𝓹")
+            help_field.title = f"Images from Reddit"
+            help_field.add_field(name = f"{prefix}meme", value = f"50/50 chance of either getting a good laugh or trauma from cringe", inline = False)
+            help_field.add_field(name = f"{prefix}cat", value = f"Praise the cats, praise the cats. ***PRAISE THE CATS***", inline = False)
+            help_field.add_field(name = f"{prefix}birb", value = f"Seeb, the lord and saviour will grant you an image of a mighty birb", inline = False)
+            help_field.add_field(name = f"{prefix}space", value = f"It's better than getting high.", inline = False)
+            help_field.add_field(name = f"{prefix}earth", value = f"When a friend tells you that earth is now just ugly cities.", inline = False)
+            help_field.add_field(name = f"{prefix}programmerhumor", value = f"Humour based on my pain. I love that.", inline = False)
+            help_field.add_field(name = f"{prefix}subreddit", value = f"Oh, so I didn't fit your needs? Well.. You can try it yourself.", inline = False)
+            help_field.add_field(name = f"𝙉𝙚𝙚𝙙 𝙢𝙤𝙧𝙚 𝙞𝙣𝙛𝙤?", value = f"𝘛𝘺𝘱𝘦 {prefix}help `command` 𝘵𝘰 𝘨𝘦𝘵 𝘥𝘦𝘵𝘢𝘪𝘭𝘦𝘥 𝘥𝘦𝘴𝘤𝘳𝘪𝘱𝘵𝘪𝘰𝘯", inline = False)
+            await ctx.send(embed = help_field)
         #_______________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
         elif spec.lower() == "kick" or spec.lower() == "votekick":
@@ -123,6 +136,16 @@ class _help(commands.Cog):
             help_field.add_field(name = f"{prefix}queue", value = f"Information command that will provide you with list of current playing song and all the songs in queue and their order numbers in queue. If no queue exists it will only provide you info about the current song") # \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
             help_field.add_field(name = f"{prefix}move `song` `position`", value = f"Takes two arguments `song` is the position of the song you want to move while the `position` argument determines where you want to put that song. If position is greater than number of songs in queue, song will be moved to the last position") # \n Works also by typing `{prefix}cn`, `{prefix}cNick`")
             help_field.add_field(name = f"{prefix}grab", value = "Doesn't reaquire any additional arguments but requires GLOB to be playing something or have paused song in queue. It will send you basic info about the playing song along with a Youtube link")
+            await ctx.send(embed = help_field)
+
+        elif spec.lower() == "reddit" or spec.lower() == "subreddit" or spec.lower() == "image":
+            help_field.add_field(name = f"{prefix}meme", value = f"GLOB will send random image from `r/memes` to your current channel. Doesn't require any arguments.")
+            help_field.add_field(name = f"{prefix}cat", value = f"If you really like cats you can tell GLOB to send you random image of a cat or cats from the `r/cats`, no arguments needed")
+            help_field.add_field(name = f"{prefix}birb", value = f"All hail the mighty **seeb**. Returns random image from `r/Birbs`.")
+            help_field.add_field(name = f"{prefix}space", value = f"Stunning photos from space or beatiful artworks from the `r/spaceporn` subreddit.")
+            help_field.add_field(name = f"{prefix}earth", value = f"For those who really appreciate nature - GLOB will select random image and send it. Images are search for from `r/earthPorn`.")
+            help_field.add_field(name = f"{prefix}programmerhumor", value = f"If you really want to understand the pain that *b1u3-22* had to go thru when coding this bot, you can let GLOB show you some memes from `r/programmerHumor`.")
+            help_field.add_field(name = f"{prefix}subreddit `subreddit`", value = f"This command requires one argument. It will search for pictures from any given subreddit that is specified - `subreddit`.")
             await ctx.send(embed = help_field)
 
 def setup(bot):
