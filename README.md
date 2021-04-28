@@ -6,7 +6,7 @@
 * Managed with *Cog* system, so you can add other modules
 * You can also unload modules that you don't want
 
-## Join us or Invite GLOB!
+## [Join the test server](https://discord.gg/d4Fwf5Gu9b) or [Invite GLOB to yours](https://discord.com/api/oauth2/authorize?client_id=781629601105444946&permissions=502791286&scope=bot)!
 
 [<img src="resources/server_icon.png" width = "100" height = "100">](https://discord.gg/d4Fwf5Gu9b) [<img src="resources/glob_icon.png" width = "100" height = "100">](https://discord.com/api/oauth2/authorize?client_id=781629601105444946&permissions=502791286&scope=bot)
 
