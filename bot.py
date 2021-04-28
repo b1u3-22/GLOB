@@ -6,6 +6,7 @@ from discord.ext.commands import has_permissions
 from dotenv import load_dotenv
 import sqlite3 as sqlite
 import random as random
+from discord_slash import SlashCommand
 
 load_dotenv()
 
@@ -26,8 +27,10 @@ def get_prefix(bot, message):
     conn.close()
 
 bot = commands.Bot(command_prefix = get_prefix, intents = intents)
+slash = SlashCommand(bot)
 bot.remove_command("help")
 
+#@slash.slash(name="load")
 @bot.command()
 async def load(ctx, extension):
     cog_managment_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -45,6 +48,7 @@ async def load(ctx, extension):
         cog_managment_field.add_field(name = f"I can't find your module named {extension}", value = f"You sure it's supposed to be here?")
         await ctx.send(embed = cog_managment_field)
 
+#@slash.slash(name="unload")
 @bot.command()
 async def unload(ctx, extension):
     cog_managment_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -62,6 +66,7 @@ async def unload(ctx, extension):
         cog_managment_field.add_field(name = f"I can't find {extension} anywhere!", value = f"And yes, I'm sure I didn't lose it.")
         await ctx.send(embed = cog_managment_field)
 
+#@slash.slash(name="reload")
 @bot.command()
 async def reload(ctx, extension):
     cog_managment_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -81,6 +86,7 @@ async def reload(ctx, extension):
         cog_managment_field.add_field(name = f"Couldn't find {extension}!", value = f"Nothing I can do here.")
         await ctx.send(embed = cog_managment_field)
 
+#@slash.slash(name="changePrefix")
 @bot.command(name = "changePrefix", aliases = ["cP", "cPrefix", "GlobChangePrefix", "cp"])
 async def changePrefix(ctx, prefix):
     conn = sqlite.connect("internal.db")
@@ -89,7 +95,8 @@ async def changePrefix(ctx, prefix):
     await ctx.send(f"Prefix changed to ***{prefix}***")
     conn.close()
 
-@bot.command()
+#@slash.slash(name="ping")
+@bot.command(name = "ping")
 async def ping(ctx):
     latency = int(bot.latency * 1000)
     ping_field = discord.Embed(colour = discord.Colour(0xFDED32), title = "Pong")
@@ -102,9 +109,7 @@ async def ping(ctx):
 async def on_ready():
     conn = sqlite.connect("internal.db")
     for cog_file in os.listdir("./cogs"):
-        if cog_file == "voice.py" or cog_file == "ytdl.py":
-            pass
-        elif cog_file.endswith(".py"):
+        if cog_file.endswith(".py"):
             bot.load_extension(f"cogs.{cog_file[:-3]}")
 
     conn.execute(f"CREATE TABLE IF NOT EXISTS prefixes(id integer PRIMARY KEY, 'guild_id' INTEGER NOT NULL, 'prefix' TEXT NOT NULL)")

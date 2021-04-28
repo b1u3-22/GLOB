@@ -7,6 +7,7 @@ from youtube_dl import YoutubeDL
 from discord import FFmpegPCMAudio
 import asyncio
 import datetime
+from discord_slash import cog_ext, SlashContext
 
 class music(commands.Cog):
     def __init__(self, bot):
@@ -25,7 +26,21 @@ class music(commands.Cog):
             info = ydl.extract_info(song, download = False)
 
         if info['entries'] != []:
-            return {"track": info['entries'][0]['url'], "title": info['entries'][0]['title'], "artist": info['entries'][0]['creator'], "duration": info['entries'][0]['duration'], "likes": info['entries'][0]['like_count'], "dislikes": info['entries'][0]['dislike_count']}
+
+            try:
+                creator = info['entries'][0]['creator']
+
+            except KeyError:
+                creator = "Uknown"
+
+            return {"track": info['entries'][0]['url'],
+                    "title": info['entries'][0]['title'],
+                    "artist": creator, 
+                    "duration": info['entries'][0]['duration'], 
+                    "likes": info['entries'][0]['like_count'], 
+                    "dislikes": info['entries'][0]['dislike_count'],
+                    "link": "https://www.youtube.com/watch?v=" +  info['entries'][0]['id']
+                    }
 
         else:
             return {}
@@ -53,6 +68,7 @@ class music(commands.Cog):
         music_field.add_field(name = f"Playing now!", value = f"Requested by {self.current_song['author'].mention}")
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="join")
     @commands.command()
     async def join(self, ctx, hello = False):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -68,6 +84,7 @@ class music(commands.Cog):
         else:
             await ctx.send("You have to be connected in voice channel")
 
+    #@cog_ext.cog_slash(name="leave")
     @commands.command()
     async def leave(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -81,6 +98,7 @@ class music(commands.Cog):
             music_field.add_field(name = f"I am not connected anywhere!", value = f"You can use `{get_prefix(self.bot, ctx.message)}join` to get me on your channel or `{get_prefix(self.bot, ctx.message)}play` to start some music")
             await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="play")
     @commands.command()
     async def play(self, ctx, *, song):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -108,7 +126,7 @@ class music(commands.Cog):
                     self.songs.append(info)
                 await ctx.send(embed = music_field)
 
-                
+    #@cog_ext.cog_slash(name="pause")
     @commands.command()
     async def pause(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -126,6 +144,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="resume")
     @commands.command()
     async def resume(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -143,6 +162,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="skip")
     @commands.command()
     async def skip(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -158,6 +178,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="loop")
     @commands.command()
     async def loop(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -174,6 +195,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="stop")
     @commands.command()
     async def stop(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -192,6 +214,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="queue")
     @commands.command()
     async def queue(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -216,6 +239,7 @@ class music(commands.Cog):
 
             await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="remove")
     @commands.command()
     async def remove(self, ctx, index):
         index = int(index)
@@ -233,6 +257,7 @@ class music(commands.Cog):
             music_field.add_field(name = f"{removed_song['title']} has been removed from your queue!", value = f"I bet nobody will miss it anyway")
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="move")
     @commands.command()
     async def move(self, ctx, index_of_song, desired_position):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -254,6 +279,7 @@ class music(commands.Cog):
 
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="now")
     @commands.command()
     async def now(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -262,6 +288,7 @@ class music(commands.Cog):
         music_field.add_field(name = f"Author: `{self.current_song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = self.current_song['duration'])}` | Popularity: `{self.current_song['likes']}/{self.current_song['dislikes']}` | Requested by {self.current_song['author'].mention}")
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="addToPlaylist")
     @commands.command()
     async def addToPlaylist(self, ctx, name, *, song_name = None):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -313,6 +340,7 @@ class music(commands.Cog):
         conn.close()
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="updatePlaylist")
     @commands.command()
     async def updatePlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -336,6 +364,7 @@ class music(commands.Cog):
         conn.close()
         await ctx.send(embed = music_field)
 
+    #@cog_ext.cog_slash(name="playPlaylist")
     @commands.command()
     async def playPlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -379,6 +408,7 @@ class music(commands.Cog):
 
 # return {"track": info['entries'][0]['url'], "title": info['entries'][0]['title'], "artist": info['entries'][0]['creator'], "duration": info['entries'][0]['duration'], "likes": info['entries'][0]['like_count'], "dislikes": info['entries'][0]['dislike_count']}
 
+    #@cog_ext.cog_slash(name="displayPlaylist")
     @commands.command()
     async def displayPlaylist(self, ctx, name):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
@@ -416,6 +446,35 @@ class music(commands.Cog):
             music_field.add_field(name = f"Couldn't find any playlists under the name `{name}`", value = f"But you can create it! Using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
 
         conn.close()
+        await ctx.send(embed = music_field)
+
+    #@cog_ext.cog_slash(name="grab")
+    @commands.command()
+    async def grab(self, ctx):
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        dm_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        dm_field.set_author(name = "𝓖𝓛𝓞𝓑")
+
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+            music_field.title = f"{self.current_song['title']}"
+            music_field.add_field(name = f"`{self.current_song['artist']}`", value = f"Artist")
+            music_field.add_field(name = f"`{datetime.timedelta(seconds = self.current_song['duration'])}`", value = f"Total Duration")
+            music_field.add_field(name = f"`{self.current_song['likes']}/{self.current_song['dislikes']}`", value = f"Popularity")
+            music_field.add_field(name = f"You really liked it, didn't ya?", value = f"*I sent this song to your DMs*")
+            dm_field.title = f"{self.current_song['title']}"
+            dm_field.add_field(name = f"`{self.current_song['artist']}`", value = f"Artist")
+            dm_field.add_field(name = f"`{datetime.timedelta(seconds = self.current_song['duration'])}`", value = f"Total Duration")
+            dm_field.add_field(name = f"`{self.current_song['likes']}/{self.current_song['dislikes']}`", value = f"Popularity")
+            dm_field.add_field(name = f"Here you go!", value = f"{self.current_song['link']}")
+            channel = await ctx.author.create_dm()
+            await channel.send(embed = dm_field)
+             
+        
+        else:
+            music_field.title = f"I'm not playing anything!"
+            music_field.add_field(name = f"If I'm not playing anything what am I supposed to send you?", value = f"*Who's the ape now, huh.*")
+
         await ctx.send(embed = music_field)
 
 def setup(bot):
