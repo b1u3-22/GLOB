@@ -18,6 +18,53 @@ class music(commands.Cog):
         self.songs = []
         self.current_song = {}
 
+        conn = sqlite.connect("data/internal.db")
+        conn.execute("CREATE TABLE IF NOT EXISTS music(id INTEGER PRIMARY KEY, guild_id INTEGER NOT NULL, current_song TEXT, queued_songs TEXT, loop INTEGER NOT NULL)")
+
+    def songs_to_string(self, songs):
+        output = ""
+        for song in songs:
+            output += f"|{song['track']}|{song['title']}|{song['artist']}|{song['duration']}|{song['likes']}|{song['dislikes']}|{song['link']}|{song['author']}|"
+
+        return output
+
+    def song_to_string(self, song):
+        return f"|{song['track']}|{song['title']}|{song['artist']}|{song['duration']}|{song['likes']}|{song['dislikes']}|{song['link']}|{song['author']}|"
+
+    def songs_from_string(self, songs):
+        songs = songs.split("||")
+        output = []
+        for song in songs:
+            if song == "":
+                pass
+            else:
+                song = song.split("|")
+                output.append({'track': song[1], 'title': song[2], 'artist': song[3], 'duration': song[4], 'likes': song[5], 'dislikes': song[6], 'link': song[7], 'author': song[8]})
+
+        return output
+
+    def song_from_string(self, song):
+        song = song.split("|")
+        return {'track': song[1], 'title': song[2], 'artist': song[3], 'duration': song[4], 'likes': song[5], 'dislikes': song[6], 'link': song[7], 'author': song[8]}
+
+    def write_to_db(self, ctx, song):
+        conn = sqlite.connect("data/internal.db")
+        song_to_store = f"|{song['track']}|{song['title']}|{song['artist']}|{song['duration']}|{song['likes']}|{song['dislikes']}|{song['link']}|{song['author']}|"
+        if len(conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()) == 0:
+            conn.execute("INSERT INTO music VALUES(NULL, ?, ?, ?, ?)", [ctx.guild.id, "", song_to_store, 0])
+        else:
+            guild_music = conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0]
+            guild_loop = guild_music[4]
+            guild_music = self.songs_from_string(guild_music[3])
+            if guild_loop == 1:
+                guild_music.insert(-1, song)
+            else:
+                guild_music.append(song)
+            conn.execute(f"UPDATE music SET queued_songs = ? WHERE guild_id = ?", (self.songs_to_string(guild_music), ctx.guild.id))
+
+        conn.commit()
+        conn.close()
+
     def get_audio_info(self, song):
         if not song.lower().startswith("http://") or not song.lower().startswith("https://"):
             song = f"ytsearch:{song}"
@@ -46,26 +93,42 @@ class music(commands.Cog):
             return {}
 
     def play_audio(self, ctx):
-        if len(self.songs) > 0:
 
-            if self.loop and self.current_song == self.songs[0] and len(self.songs) > 1:
-                self.songs.append(self.songs.pop(0))
+        conn = sqlite.connect("data/internal.db")
+        guild_info = conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0]
+        songs = self.songs_from_string(guild_info[3])
+        current_song = "" if conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][2] == "" else self.song_from_string(guild_info[2])
+        loop = guild_info[4]
 
-            self.current_song = self.songs.pop(0)
+        if len(songs) > 0:
+
+            if loop == 1 and current_song == songs[0] and len(songs) > 1:
+                songs.append(songs.pop(0))
+
+            current_song = songs.pop(0)
+
             self.bot.loop.create_task(self.inform_user(ctx))
-            if self.loop:
-                self.songs.append(self.current_song)
 
-            ctx.voice_client.play(FFmpegPCMAudio(self.get_audio_info(self.current_song['title'])['track'], **self.FFMPEG_OPTIONS), after = lambda error: print(error) if error is not None else self.play_audio(ctx))
+            if loop == 1:
+                songs.append(current_song)
+
+            conn.execute(f"UPDATE music SET current_song = ?, queued_songs = ? WHERE guild_id = ?", (self.song_to_string(current_song), self.songs_to_string(songs), ctx.guild.id))
+            conn.commit()
+            conn.close()
+            ctx.voice_client.play(FFmpegPCMAudio(current_song['track'], **self.FFMPEG_OPTIONS), after = lambda error: print(error) if error is not None else self.play_audio(ctx))
 
     async def inform_user(self, ctx):
+        conn = sqlite.connect("data/internal.db")
+        current_song = self.songs_from_string(conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][2])[0]
+        conn.close()
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        music_field.title = f"{self.current_song['title']}"
-        music_field.add_field(name = f"`{self.current_song['artist']}`", value = f"Artist")
-        music_field.add_field(name = f"`{datetime.timedelta(seconds = self.current_song['duration'])}`", value = f"Duration")
-        music_field.add_field(name = f"`{self.current_song['likes']}/{self.current_song['dislikes']}`", value = f"Popularity")
-        music_field.add_field(name = f"Playing now!", value = f"Requested by {self.current_song['author'].mention}")
+        music_field.title = f"{current_song['title']}"
+        music_field.add_field(name = f"`{current_song['artist']}`", value = f"Artist")
+        music_field.add_field(name = f"`{datetime.timedelta(seconds = int(current_song['duration']))}`", value = f"Duration")
+        music_field.add_field(name = f"`{current_song['likes']}/{current_song['dislikes']}`", value = f"Popularity")
+        author = await ctx.guild.fetch_member(current_song['author'])
+        music_field.add_field(name = f"Playing now!", value = f"Requested by { author.mention}")
         await ctx.send(embed = music_field)
 
     #@cog_ext.cog_slash(name="join")
@@ -101,17 +164,19 @@ class music(commands.Cog):
     #@cog_ext.cog_slash(name="play")
     @commands.command()
     async def play(self, ctx, *, song):
+
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+
         if ctx.author.voice:
             if ctx.voice_client == None:
                 await ctx.author.voice.channel.connect()
 
             info = self.get_audio_info(song)
-            info['author'] = ctx.author
+            info['author'] =  ctx.author.id
 
-            if len(self.songs) == 0 and not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                self.songs.append(info)
+            if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+                self.write_to_db(ctx, info)
                 self.play_audio(ctx)
 
             else:
@@ -120,10 +185,9 @@ class music(commands.Cog):
                 music_field.add_field(name = f"`{datetime.timedelta(seconds = info['duration'])}`", value = f"Duration")
                 music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
                 music_field.add_field(name = f"Added to queue", value = f"***Sorry, somebody was faster than you.***")
-                if self.loop:
-                    self.songs.insert(-1, info)
-                else:
-                    self.songs.append(info)
+                
+                self.write_to_db(ctx, info)
+
                 await ctx.send(embed = music_field)
 
     #@cog_ext.cog_slash(name="pause")
@@ -131,17 +195,19 @@ class music(commands.Cog):
     async def pause(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        conn = sqlite.connect("data/internal.db")
 
         if ctx.voice_client == None:
             music_field.add_field(name = "Nothing to be paused!", value = f"This commands purpose is to pause currently playing song. To play song use `{get_prefix(self.bot, ctx.message)}play`")
         else:
+            current_song = self.songs_from_string(conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][2])[0]
+            conn.close()
             if ctx.voice_client.is_playing():
                 music_field.add_field(name = f"{self.current_song['title']} paused!", value = f"Song is now paused if you want to resume it, you can use `{get_prefix(self.bot, ctx.message)}resume`")
                 ctx.voice_client.pause()
 
             else:
                 music_field.add_field(name = f"{self.current_song['title']} is already paused!", value = f"To resume it use `{get_prefix(self.bot, ctx.message)}resume`")
-
         await ctx.send(embed = music_field)
 
     #@cog_ext.cog_slash(name="resume")
@@ -149,10 +215,13 @@ class music(commands.Cog):
     async def resume(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        conn = sqlite.connect("data/internal.db")
 
         if ctx.voice_client == None:
             music_field.add_field(name = "Nothing to be resumed!", value = f"If you want to start some music use `{get_prefix(self.bot, ctx.message)}play`")
         else:
+            current_song = self.songs_from_string(conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][2])[0]
+            conn.close()
             if ctx.voice_client.is_paused():
                 music_field.add_field(name = f"{self.current_song['title']} resumed!", value = f"Let the show start again!")
                 ctx.voice_client.resume()
@@ -167,13 +236,16 @@ class music(commands.Cog):
     async def skip(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        conn = sqlite.connect("data/internal.db")
 
         if ctx.voice_client == None:
             music_field.add_field(name = "Nothing to be skipped!", value = f"It seems you have no songs playing nor in queue. Don't worry, use `{get_prefix(self.bot, ctx.message)}play` to play something!")
 
         else:
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                music_field.add_field(name = f"{self.current_song['title']} skipped!", value = f"You didn't like it, I see")
+                current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
+                conn.close()
+                music_field.add_field(name = f"{current_song['title']} skipped!", value = f"You didn't like it, I see")
                 ctx.voice_client.stop()
 
         await ctx.send(embed = music_field)
@@ -219,20 +291,30 @@ class music(commands.Cog):
     async def queue(self, ctx):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        conn = sqlite.connect("data/internal.db")
         total_duration = 0
         if ctx.voice_client:
             if ctx.voice_client.is_playing or ctx.voice_client.is_paused():
-                music_field.title = f"`Now playing` - {self.current_song['title']}"
-                if self.songs:
-                    for song in self.songs:
-                        music_field.add_field(name = f"`{self.songs.index(song) + 1}` - {song['title']} by `{song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = song['duration'])}` | Popularity: `{song['likes']}/{song['dislikes']}` | Requested by {song['author'].mention}", inline = False)
-                        total_duration += song['duration']
+                current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
+                songs = self.songs_from_string(conn.execute(f"SELECT queued_songs FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][0])
+                loop = "Yes" if conn.execute(f"SELECT loop FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0] == 1 else "No"
+                print(current_song)
+                print(songs)
+                print(loop)
+                music_field.title = f"`Now playing` - {current_song['title']}"
+                if songs:
+                    for song in songs:
+                        author = await ctx.guild.fetch_member(song['author'])
+                        music_field.add_field(name = f"`{songs.index(song) + 1}` - {song['title']} by `{song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = int(song['duration']))}` | Popularity: `{song['likes']}/{song['dislikes']}` | Requested by {author.mention}", inline = False)
+                        total_duration += int(song['duration'])
+
                     music_field.add_field(name = f"Total Duration", value = f"`{datetime.timedelta(seconds = total_duration)}`")
-                    music_field.add_field(name = f"Number of songs", value = f"`{len(self.songs)}`")
-                    music_field.add_field(name = f"Loop", value = f"`{self.loop}`")
+                    music_field.add_field(name = f"Number of songs", value = f"`{len(songs)}`")
+                    music_field.add_field(name = f"Loop", value = f"`{loop}`")
 
                 else:
-                    music_field.add_field(name = f"Author: `{self.current_song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = self.current_song['duration'])}` | Popularity: `{self.current_song['likes']}/{self.current_song['dislikes']}` | Requested by {self.current_song['author'].mention}")
+                    author = await ctx.guild.fetch_member(current_song['author'])
+                    music_field.add_field(name = f"Author: `{current_song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = int(current_song['duration']))}` | Popularity: `{current_song['likes']}/{current_song['dislikes']}` | Requested by {author.mention}")
 
             else:
                 music_field.add_field(name = f"They are no songs playing!", value = f"If you want to play a new song simply type `{get_prefix(self.bot, ctx.message)}play`")
