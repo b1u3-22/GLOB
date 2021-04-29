@@ -39,6 +39,7 @@ class music(commands.Cog):
                 pass
             else:
                 song = song.split("|")
+                print(song)
                 output.append({'track': song[1], 'title': song[2], 'artist': song[3], 'duration': song[4], 'likes': song[5], 'dislikes': song[6], 'link': song[7], 'author': song[8]})
 
         return output
