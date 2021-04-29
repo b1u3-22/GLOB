@@ -128,7 +128,7 @@ async def on_ready():
         print("Created word bank for hangman")
 
     print(f"Database ready")
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="Developer mode"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="if someone needs help"))
     print(f"Logged in as {bot.user}")
 
     conn.close()
