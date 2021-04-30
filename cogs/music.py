@@ -13,8 +13,8 @@ class music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3', 'rm-cache-dir': True, 'skip_download': True}
-        self.YTDL_OPTIONS_PLAYLIST_FIRSTSONG = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playlistend': 1, 'noplaylist': False, '-yes_playlist': True}
-        self.YTDL_OPTIONS_PLAYLIST_RESTOFSONGS = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playliststart': 2, 'playlistend': 5, 'noplaylist': False, '-yes_playlist': True}
+        self.YTDL_OPTIONS_PLAYLIST_FIRSTSONG = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playlistend': 1, 'noplaylist': False, 'quiet': True, '-yes_playlist': True}
+        self.YTDL_OPTIONS_PLAYLIST_RESTOFSONGS = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playliststart': 2, 'playlistend': 20, 'quiet': True, 'noplaylist': False, '-yes_playlist': True}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         conn = sqlite.connect("data/internal.db")
         conn.execute("CREATE TABLE IF NOT EXISTS music(id INTEGER PRIMARY KEY, guild_id INTEGER NOT NULL, current_song TEXT, queued_songs TEXT, loop INTEGER NOT NULL)")
