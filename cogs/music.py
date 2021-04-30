@@ -77,8 +77,6 @@ class music(commands.Cog):
 
         if info['entries'] != []:
 
-            print(info['entries'][0])
-
             try:
                 creator = info['entries'][0]['creator']
 
