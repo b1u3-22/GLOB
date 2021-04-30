@@ -208,11 +208,11 @@ class music(commands.Cog):
             current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
             conn.close()
             if ctx.voice_client.is_playing():
-                music_field.add_field(name = f"{self.current_song['title']} paused!", value = f"Song is now paused if you want to resume it, you can use `{get_prefix(self.bot, ctx.message)}resume`")
+                music_field.add_field(name = f"{current_song['title']} paused!", value = f"Song is now paused if you want to resume it, you can use `{get_prefix(self.bot, ctx.message)}resume`")
                 ctx.voice_client.pause()
 
             else:
-                music_field.add_field(name = f"{self.current_song['title']} is already paused!", value = f"To resume it use `{get_prefix(self.bot, ctx.message)}resume`")
+                music_field.add_field(name = f"{current_song['title']} is already paused!", value = f"To resume it use `{get_prefix(self.bot, ctx.message)}resume`")
         await ctx.send(embed = music_field)
 
     #@cog_ext.cog_slash(name="resume")
