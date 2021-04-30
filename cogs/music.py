@@ -358,6 +358,8 @@ class music(commands.Cog):
         elif index - 1 <= len(songs) and index - 1 >= 0:
             removed_song = songs.pop(index - 1)
             music_field.add_field(name = f"{removed_song['title']} has been removed from your queue!", value = f"I bet nobody will miss it anyway")
+            conn.execute("UPDATE music SET queued_songs = ? WHERE guild_id = ?", (self.songs_to_string(songs), ctx.guild.id))
+            conn.commit()
         conn.close()
         await ctx.send(embed = music_field)
 
