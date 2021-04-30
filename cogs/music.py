@@ -161,7 +161,7 @@ class music(commands.Cog):
                         )
                 return output
 
-    def play_audio(self, ctx):
+    def play_audio(self, ctx, inform = True):
         conn = sqlite.connect("data/internal.db")
         guild_info = conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0]
         songs = self.songs_from_string(guild_info[3])
@@ -175,7 +175,8 @@ class music(commands.Cog):
 
             current_song = songs.pop(0)
 
-            self.bot.loop.create_task(self.inform_user(ctx))
+            if inform:
+                self.bot.loop.create_task(self.inform_user(ctx))
 
             if loop == 1:
                 songs.append(current_song)
@@ -244,7 +245,8 @@ class music(commands.Cog):
                 info = await self.get_audio_info(song, ctx.author.id, ytlist=True, first=True)
                 self.write_to_db(ctx, info)
                 if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
-                    self.play_audio(ctx)
+                    self.play_audio(ctx, inform = False)
+                await self.inform_user(ctx)
                 infos = await self.get_audio_info(song, ctx.author.id, ytlist=True, first=False)
                 self.write_to_db_multiple(ctx, infos)
                 music_field.title = f"Loaded your list!"
