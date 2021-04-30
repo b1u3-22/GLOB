@@ -12,14 +12,14 @@ import datetime
 class music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3', 'rm-cache-dir': True}
+        self.YTDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True, 'default-search': 'auto', 'quiet': True, 'extractaudio': True, 'audioformat': 'mp3', 'rm-cache-dir': True, 'skip_download': True}
+        self.YTDL_OPTIONS_PLAYLIST_FIRSTSONG = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playlistend': 1, 'noplaylist': False, '-yes_playlist': True}
+        self.YTDL_OPTIONS_PLAYLIST_RESTOFSONGS = {'format': 'bestaudio', 'extractaudio': True, 'skip_download': True, 'playliststart': 2, 'playlistend': 5, 'noplaylist': False, '-yes_playlist': True}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-        self.loop = False
-        self.songs = []
-        self.current_song = {}
-
         conn = sqlite.connect("data/internal.db")
         conn.execute("CREATE TABLE IF NOT EXISTS music(id INTEGER PRIMARY KEY, guild_id INTEGER NOT NULL, current_song TEXT, queued_songs TEXT, loop INTEGER NOT NULL)")
+        conn.commit()
+        conn.close()
 
     def songs_to_string(self, songs):
         output = ""
@@ -68,35 +68,100 @@ class music(commands.Cog):
         conn.commit()
         conn.close()
 
-    def get_audio_info(self, song):
-        if not song.lower().startswith("http://") or not song.lower().startswith("https://"):
-            song = f"ytsearch:{song}"
+    def write_to_db_multiple(self, ctx, songs):
+        conn = sqlite.connect("data/internal.db")
+        songs_to_store = self.songs_to_string(songs)
+        if len(conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()) == 0:
+            conn.execute("INSERT INTO music VALUES(NULL, ?, ?, ?, ?)", [ctx.guild.id, "", songs_to_store, 0])
+        else:
+            guild_music = conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0]
+            guild_loop = guild_music[4]
+            guild_music = self.songs_from_string(guild_music[3])
+            if guild_loop == 1:
+                for song in songs:
+                    guild_music.insert(-1, song)
+            else:
+                guild_music.extend(songs)
+            conn.execute(f"UPDATE music SET queued_songs = ? WHERE guild_id = ?", (self.songs_to_string(guild_music), ctx.guild.id))
 
-        with YoutubeDL(self.YTDL_OPTIONS) as ydl:
-            info = ydl.extract_info(song, download = False)
+        conn.commit()
+        conn.close()
 
-        if info['entries'] != []:
+    async def get_audio_info(self, song, author, ytlist = False, first = True):
+        if not ytlist:
+            if song.__contains__("https://www.youtube.com") or song.__contains__("https://www.youtu.be"):
+                with YoutubeDL(self.YTDL_OPTIONS) as ydl:
+                    info = ydl.extract_info(song, download = False)
+            else:  
+                with YoutubeDL(self.YTDL_OPTIONS) as ydl:
+                    info = ydl.extract_info(f"ytsearch:{song}", download = False)['entries'][0]
 
             try:
-                creator = info['entries'][0]['creator']
+                creator = info['creator']
 
             except KeyError:
-                creator = info['entries'][0]['uploader_id']
+                creator = info['uploader_id']
 
-            return {"track": info['entries'][0]['url'],
-                    "title": info['entries'][0]['title'],
+            return {"track": info['url'],
+                    "title": info['title'],
                     "artist": creator, 
-                    "duration": info['entries'][0]['duration'], 
-                    "likes": info['entries'][0]['like_count'], 
-                    "dislikes": info['entries'][0]['dislike_count'],
-                    "link": "https://www.youtube.com/watch?v=" +  info['entries'][0]['id']
+                    "duration": info['duration'], 
+                    "likes": info['like_count'], 
+                    "dislikes": info['dislike_count'],
+                    "link": "https://www.youtube.com/watch?v=" +  info['id'],
+                    "author": author
                     }
 
-        else:
             return {}
 
-    def play_audio(self, ctx):
+        else:
+            if first:
+                with YoutubeDL(self.YTDL_OPTIONS_PLAYLIST_FIRSTSONG) as ydl:
+                    info = ydl.extract_info(song, download = False)['entries'][0]
 
+                try:
+                    creator = info['creator']
+
+                except KeyError:
+                    creator = info['uploader_id']
+
+                return {"track": info['url'],
+                        "title": info['title'],
+                        "artist": creator, 
+                        "duration": info['duration'], 
+                        "likes": info['like_count'], 
+                        "dislikes": info['dislike_count'],
+                        "link": "https://www.youtube.com/watch?v=" +  info['id'],
+                        "author": author
+                        }
+
+            else:
+                with YoutubeDL(self.YTDL_OPTIONS_PLAYLIST_RESTOFSONGS) as ydl:
+                    info = ydl.extract_info(song, download = False)['entries']
+
+                output = []
+
+                for entry in info:
+
+                    try:
+                        creator = entry['creator']
+
+                    except KeyError:
+                        creator = entry['uploader_id']
+
+                    output.append({"track": entry['url'],
+                                   "title": entry['title'],
+                                   "artist": creator, 
+                                   "duration": entry['duration'], 
+                                   "likes": entry['like_count'], 
+                                   "dislikes": entry['dislike_count'],
+                                   "link": "https://www.youtube.com/watch?v=" +  entry['id'],
+                                   "author": author
+                                }
+                        )
+                return output
+
+    def play_audio(self, ctx):
         conn = sqlite.connect("data/internal.db")
         guild_info = conn.execute(f"SELECT * FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0]
         songs = self.songs_from_string(guild_info[3])
@@ -175,23 +240,33 @@ class music(commands.Cog):
             if ctx.voice_client == None:
                 await ctx.author.voice.channel.connect()
 
-            info = self.get_audio_info(song)
-            info['author'] =  ctx.author.id
-
-            if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+            if song.lower().__contains__("playlist?list="):
+                info = await self.get_audio_info(song, ctx.author.id, ytlist=True, first=True)
                 self.write_to_db(ctx, info)
-                self.play_audio(ctx)
-
-            else:
-                music_field.title = f"{info['title']}"
-                music_field.add_field(name = f"`{info['artist']}`", value = f"Artist")
-                music_field.add_field(name = f"`{datetime.timedelta(seconds = info['duration'])}`", value = f"Duration")
-                music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
-                music_field.add_field(name = f"Added to queue", value = f"***Sorry, somebody was faster than you.***")
-                
-                self.write_to_db(ctx, info)
-
+                if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+                    self.play_audio(ctx)
+                infos = await self.get_audio_info(song, ctx.author.id, ytlist=True, first=False)
+                self.write_to_db_multiple(ctx, infos)
+                music_field.title = f"Loaded your list!"
+                music_field.add_field(name = f"I have placed all the songs from the playlist into your queue", value = f"I'm sorry if it took long, sometimes, loading 200 song playlist is not an easy task.")
                 await ctx.send(embed = music_field)
+            else:
+                info = await self.get_audio_info(song, ctx.author.id,)
+
+                if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+                    self.write_to_db(ctx, info)
+                    self.play_audio(ctx)
+
+                else:
+                    music_field.title = f"{info['title']}"
+                    music_field.add_field(name = f"`{info['artist']}`", value = f"Artist")
+                    music_field.add_field(name = f"`{datetime.timedelta(seconds = info['duration'])}`", value = f"Duration")
+                    music_field.add_field(name = f"`{info['likes']}/{info['dislikes']}`", value = f"Popularity")
+                    music_field.add_field(name = f"Added to queue", value = f"***Sorry, somebody was faster than you.***")
+                    
+                    self.write_to_db(ctx, info)
+
+                    await ctx.send(embed = music_field)
 
     #@cog_ext.cog_slash(name="pause")
     @commands.command()

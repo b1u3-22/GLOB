@@ -16,7 +16,7 @@ class simpleDialogEvents(commands.Cog):
         if message.author == self.bot.user:
             return
 
-        if message.content.lower().__contains__("ape"):
+        if message.content.lower().__contains__("ape") and not message.content.lower().__contains__("rape"):
             await message.channel.send(f"***{self.apeResponses[random.randrange(len(self.apeResponses))]}***")
         elif "globprefix" in message.content.lower():
             try: 
