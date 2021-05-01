@@ -81,7 +81,7 @@ Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob). T
 
  * The `DISCORD_TOKEN` variable **needs to be set**. You can get your token from [Discord's Developer Portal](https://discord.com/developers/applications).
  * (optional) Choose a place to store GLOB's database using a mount point. If you don't set a mount point for GLOB's data, GLOB won't remember your settings and data.
- * (optional) Set the REDDIT_\* variables for using GLOB's Reddit functionality.
+ * (optional) Set the `REDDIT_*` variables for using GLOB's Reddit functionality.
 
 ##### Pure Docker
 
