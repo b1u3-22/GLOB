@@ -68,7 +68,7 @@
   * `python bot.py`
 
 ### Using Docker
-* Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker  
+Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker  
 
 Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob). The table below explains the tags.
 
@@ -77,7 +77,8 @@ Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob). T
 | latest |   on push  | Built automatically using a GitHub Action                                                   |
 | stable | irregularly | Built by [satcom886](https://github.com/satcom886) whenever a version is mostly working    |
 
-In both instances, you need to set the `DISCORD_TOKEN` variable. Optionally you can choose a place to store GLOB's database using a mount point. GLOB stores its data in `/GLOB/data`, so you can bind-mount that wherever you want. If you don't set a mount point for GLOB's data, GLOB won't remember your settings and data.
+In both instances, you need to set the `DISCORD_TOKEN` variable.  
+Optionally you can choose a place to store GLOB's database using a mount point. If you don't set a mount point for GLOB's data, GLOB won't remember your settings and data.
 
 #### Pure Docker
 
