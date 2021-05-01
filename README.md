@@ -68,12 +68,22 @@
   * `python bot.py`
 
 ### Using Docker
-* Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker
+Thanks to [satcom886](https://github.com/satcom886) GLOB has a Dockerfile and so can be served in Docker  
 
-Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob).  
-In both instances, you need to at least set the `DISCORD_TOKEN` variable and choose a place to store GLOB's data using a mount point. GLOB stores its data in `/GLOB/data`, so you can bind-mount that wherever you want.
+Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob). The table below explains the tags.
 
-#### Vanilla Docker
+|  Tag   |   Update   |                                 Description                                                 |
+|:------:|:----------:|:-------------------------------------------------------------------------------------------:|
+| latest |   on push  | Built automatically using a GitHub Action                                                   |
+| stable | irregularly | Built by [satcom886](https://github.com/satcom886) whenever a version is mostly working    |
+
+#### Configuration
+
+ * The `DISCORD_TOKEN` variable **needs to be set**. You can get your token from [Discord's Developer Portal](https://discord.com/developers/applications).
+ * (optional) Choose a place to store GLOB's database using a mount point. If you don't set a mount point for GLOB's data, GLOB won't remember your settings and data.
+ * (optional) Set the `REDDIT_*` variables for using GLOB's Reddit functionality.
+
+##### Pure Docker
 
 ```
 docker run \
@@ -87,7 +97,7 @@ docker run \
  satcom886/glob
 ```
 
-#### Using `docker-compose`
+##### Using `docker-compose`
 
 ```yaml
 version: "3.5"
