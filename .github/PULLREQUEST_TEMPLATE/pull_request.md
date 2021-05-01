@@ -14,25 +14,25 @@ Any questions should be directed to [Simpleton-Yogy][2]
 
 ## Pull request details
 
-***Provide details about your pull request and what it adds, fixes, or changes.***
+[comment]: <> (Provide details about your pull request and what it adds, fixes, or changes.)
 
 
 
 ## Breaking changes
 
-***Describe what features are broken by this pull request and why, if any.***
+[comment]: <> (Describe what features are broken by this pull request and why, if any.)
 
 
 
 ## Issues fixed
 
-***Enter the issue numbers resolved by this pull request below, if any.***
+[comment]: <> (Enter the issue numbers resolved by this pull request below, if any.)
 
 
 
 ## Other relevant information
 
-***Provide any other important details below.***
+[comment]: <> (Provide any other important details below.)
 
 
 
