@@ -510,8 +510,6 @@ class music(commands.Cog):
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
 
         if ctx.voice_client:
-            print(ctx.voice_client.is_playing())
-            print(ctx.voice_client.is_paused())
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 conn = sqlite.connect("data/internal.db")
                 current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
