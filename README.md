@@ -77,11 +77,13 @@ Images are available on [Docker Hub](https://hub.docker.com/r/satcom886/glob). T
 | latest |   on push  | Built automatically using a GitHub Action                                                   |
 | stable | irregularly | Built by [satcom886](https://github.com/satcom886) whenever a version is mostly working    |
 
+#### Configuration
+
  * The `DISCORD_TOKEN` variable **needs to be set**. You can get your token from [Discord's Developer Portal](https://discord.com/developers/applications).
  * (optional) Choose a place to store GLOB's database using a mount point. If you don't set a mount point for GLOB's data, GLOB won't remember your settings and data.
  * (optional) Set the REDDIT_\* variables for using GLOB's Reddit functionality.
 
-#### Pure Docker
+##### Pure Docker
 
 ```
 docker run \
@@ -95,7 +97,7 @@ docker run \
  satcom886/glob
 ```
 
-#### Using `docker-compose`
+##### Using `docker-compose`
 
 ```yaml
 version: "3.5"
