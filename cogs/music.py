@@ -47,6 +47,8 @@ class music(commands.Cog):
         return output
 
     def song_from_string(self, song):
+        if not song:
+            return {}
         song = song.split("|")
         return {'track': song[1], 'title': song[2], 'artist': song[3], 'duration': song[4], 'likes': song[5], 'dislikes': song[6], 'link': song[7], 'author': song[8]}
 
@@ -241,7 +243,12 @@ class music(commands.Cog):
             if ctx.voice_client == None:
                 await ctx.author.voice.channel.connect()
 
-            if song.lower().__contains__("playlist?list="):
+            if song.lower().__contains__("list="):
+
+                if song.lower().__contains__("&list="):
+                    x = song.index("list=")
+                    song = f"https://www.youtube.com/playlist?{song[x:]}"
+                
                 info = await self.get_audio_info(song, ctx.author.id, ytlist=True, first=True)
                 self.write_to_db(ctx, info)
                 if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
@@ -521,37 +528,31 @@ class music(commands.Cog):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
         conn = sqlite.connect("data/internal.db")
+        current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
+        songs = self.songs_from_string(conn.execute(f"SELECT queued_songs FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][0])
         song_to_save = ""
-        if self.current_song == {} and song_name is None:
+        if current_song == {} and song_name is None:
             music_field.add_field(name = f"You have to specify what song!", value = f"I can't add nothing to playlist..")
 
         else:
             if song_name == None:
-                for value in self.current_song:
-                    song_to_save += "|" + str(self.current_song[value])
-                song_to_save += "|"
+                song_to_save = f"{current_song['link']}|"
             elif song_name.lower() == "queue":
                 for song in self.songs:
-                    for value in song:
-                        song_to_save += "|" + str(song[value])
-                    song_to_save += "|"
-                for value in self.current_song:
-                    song_to_save += "|" + str(self.current_song[value])
-                song_to_save += "|"
+                    song_to_save += f"{song['link']}|"
+                song_to_save += f"{current_song['link']}|"
             else:
-                info = self.get_audio_info(song_name)
-                for value in info:
-                    song_to_save += "|" + str(info[value])
-                song_to_save += "|"
+                info = await self.get_audio_info(song_name, ctx.message.author)
+                song_to_save += f"{info['link']}|"
             if len(conn.execute(f"SELECT * FROM playlists WHERE name = '{name}' AND user_id = '{ctx.author.id}'").fetchall()) == 0:
                 conn.execute("INSERT INTO playlists VALUES(NULL, ?, ?, ?)", (ctx.author.id, name, song_to_save))
                 conn.commit()
                 if song_name == None:
-                    music_field.add_field(name = f"`{name}` playlist created! I added `{self.current_song['title']}` into it for you.", value = f"You can add songs to your playlist using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
+                    music_field.add_field(name = f"`{name}` playlist created! I added `{current_song['title']}` into it for you.", value = f"You can add songs to your playlist using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
                 elif song_name.lower() == "queue":
                     music_field.add_field(name = f"New playlist named `{name}` created! And your queue added into it", value = f"You can play your playlist using `{get_prefix(self.bot, ctx.message)}playPlaylist {name}` or you can add songs to your queue, use `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} queue` to update it")
                 else:
-                    music_field.add_field(name = f"Created new playlist named `{name}` and added `{self.current_song['title']}` into it", value = f"You can play your playlist using `{get_prefix(self.bot, ctx.message)}playPlaylist {name}` or you can add songs to your queue, use `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} queue` to update it")
+                    music_field.add_field(name = f"Created new playlist named `{name}` and added `{info['title']}` into it", value = f"You can play your playlist using `{get_prefix(self.bot, ctx.message)}playPlaylist {name}` or you can add songs to your queue, use `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} queue` to update it")
 
 
             else:
@@ -560,7 +561,7 @@ class music(commands.Cog):
                 conn.commit()
 
                 if song_name == None:
-                    music_field.add_field(name = f"Added your currently playing song named `{self.current_song['title']}` into your playlist `{name}`", value = f"You can play it using `{get_prefix(self.bot, ctx.message)}playPlaylist`")
+                    music_field.add_field(name = f"Added your currently playing song named `{current_song['title']}` into your playlist `{name}`", value = f"You can play it using `{get_prefix(self.bot, ctx.message)}playPlaylist`")
                 else:
                     music_field.add_field(name = f"Added `{info['title']}` into your playlist named `{name}`", value = f"That's nice song you got there, {ctx.author.mention}!")
 
@@ -573,20 +574,20 @@ class music(commands.Cog):
         music_field = discord.Embed(colour = discord.Colour(0xFDED32))
         music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
         conn = sqlite.connect("data/internal.db")
+        current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
+        songs = self.songs_from_string(conn.execute(f"SELECT queued_songs FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][0])
         playlists = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}' AND user_id = '{ctx.author.id}'").fetchall()
         if len(playlists) == 0:
             music_field.add_field(name = f"Couldn't find any playlists under the name `{name}`", value = f"But you can create it! Using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
 
         else:
-            song_to_save = ""
-            for song in self.songs:
-                    for value in song:
-                        song_to_save += "|" + str(song[value])
-                    song_to_save += "|"
+            songs_to_save = f"{current_song['link']}|"
+            for song in songs:
+                songs_to_save += f"{song['link']}|"
 
-            conn.execute(f"UPDATE playlists SET songs = '{song_to_save}' WHERE name = '{name}' AND user_id = '{ctx.author.id}'")
+            conn.execute(f"UPDATE playlists SET songs = '{songs_to_save}' WHERE name = '{name}' AND user_id = '{ctx.author.id}'")
             conn.commit()
-            music_field.add_field(name = f"Updated playlist `{name}` according to your queue", value = f"You can now display the updated version using `{get_prefix(self.bot, ctx.message)}displayPlaylist {name}`")
+            music_field.add_field(name = f"Updated playlist `{name}` according to your queue", value = f"You can now play the updated version using `{get_prefix(self.bot, ctx.message)}playPlaylist {name}`")
 
         conn.close()
         await ctx.send(embed = music_field)
@@ -604,26 +605,23 @@ class music(commands.Cog):
             data = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}' user_id = '{ctx.message.mentions[0].id}'").fetchall()
 
         if len(data) != 0:
-            songs = data[0][3].split("||")
-            user_id = data[0][1]
-            songs_to_play = []
-            for song in songs:
-                song = song.split("|")
-                for i in range(len(song) - 1):
-                    if song[i] == "":
-                        song.pop(i)
-                songs_to_play.append(song)
-
-            self.songs.clear
+            songs = list(filter(None, data[0][3].split("|")))
             if not ctx.voice_client:
                 await ctx.author.voice.channel.connect()
 
-            for song in songs_to_play:
-                song_to_add = {'track': song[0], 'title': song[1], 'artist': song[2], 'duration': float(song[3]), 'likes': int(song[4]), 'dislikes': int(song[5]), 'author': ctx.guild.get_member(ctx.author.id)}
-                self.songs.append(song_to_add)
+            if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused(): 
+                self.write_to_db(ctx, await self.get_audio_info(songs.pop(0), ctx.message.author.id))
+                self.play_audio(ctx, inform=False)
+                await self.inform_user(ctx)
+            
+            songs_to_write = []
 
-            if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
-                self.play_audio(ctx)
+            if songs:
+                for song in songs:
+                    songs_to_write.append(await self.get_audio_info(song, ctx.message.author.id))
+
+            self.write_to_db_multiple(ctx, songs_to_write)
+
 
             music_field.add_field(name = f"Replaced your queue with songs from playlist `{name}`", value = f"If you add any songs to your queue, you can update your playlist using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} update`")
 
@@ -634,46 +632,6 @@ class music(commands.Cog):
         await ctx.send(embed = music_field)
 
 # return {"track": info['entries'][0]['url'], "title": info['entries'][0]['title'], "artist": info['entries'][0]['creator'], "duration": info['entries'][0]['duration'], "likes": info['entries'][0]['like_count'], "dislikes": info['entries'][0]['dislike_count']}
-
-    #@cog_ext.cog_slash(name="displayPlaylist")
-    @commands.command()
-    async def displayPlaylist(self, ctx, name):
-        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
-        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
-        conn = sqlite.connect("data/internal.db")
-        if len(ctx.message.mentions) == 0:
-            data = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}'").fetchall()
-
-        else:
-            data = conn.execute(f"SELECT * FROM playlists WHERE name = '{name}' user_id = '{ctx.message.mentions[0].id}'").fetchall()
-
-        if len(data) != 0:
-            total_duration = 0
-            songs = data[0][3].split("||")
-            user = ctx.guild.get_member(data[0][1])
-            playlist_name = data[0][2]
-            songs_to_display = []
-            for song in songs:
-                song = song.split("|")
-                for i in range(len(song) - 1):
-                    if song[i] == "":
-                        song.pop(i)
-                song = {'track': song[0], 'title': song[1], 'artist': song[2], 'duration': float(song[3]), 'likes': int(song[4]), 'dislikes': int(song[5]), 'author': user}
-                songs_to_display.append(song)
-
-            music_field.title = f"`Playlist` {playlist_name}"      
-            for song in songs_to_display:
-                music_field.add_field(name = f"`{songs_to_display.index(song) + 1}` - {song['title']} by `{song['artist']}`", value = f"Duration: `{datetime.timedelta(seconds = song['duration'])}` | Popularity: `{song['likes']}/{song['dislikes']}` | Requested by {song['author'].mention}", inline = False)
-                total_duration += song['duration']
-            music_field.add_field(name = f"Total Duration", value = f"`{datetime.timedelta(seconds = total_duration)}`")
-            music_field.add_field(name = f"Number of songs", value = f"`{len(songs_to_display)}`")
-            music_field.add_field(name = f"Creator of {name}", value = f"{user.mention}")
-
-        else:
-            music_field.add_field(name = f"Couldn't find any playlists under the name `{name}`", value = f"But you can create it! Using `{get_prefix(self.bot, ctx.message)}addToPlaylist {name} song`")
-
-        conn.close()
-        await ctx.send(embed = music_field)
 
 def setup(bot):
     bot.add_cog(music(bot))
