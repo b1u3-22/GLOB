@@ -104,18 +104,21 @@ class music(commands.Cog):
             except KeyError:
                 creator = info['uploader_id']
 
+            try:
+                dislikes = info['dislike_count']
+            
+            except KeyError:
+                dislikes = "Hidden"
+
             return {"track": info['url'],
                     "title": info['title'],
                     "artist": creator, 
                     "duration": info['duration'], 
                     "likes": info['like_count'], 
-                    "dislikes": info['dislike_count'],
+                    "dislikes": dislikes,
                     "link": "https://www.youtube.com/watch?v=" +  info['id'],
                     "author": author
                     }
-
-            return {}
-
         else:
             if first:
                 with YoutubeDL(self.YTDL_OPTIONS_PLAYLIST_FIRSTSONG) as ydl:
@@ -127,12 +130,18 @@ class music(commands.Cog):
                 except KeyError:
                     creator = info['uploader_id']
 
+                try:
+                    dislikes = info['dislike_count']
+                
+                except KeyError:
+                    dislikes = "Hidden"
+
                 return {"track": info['url'],
                         "title": info['title'],
                         "artist": creator, 
                         "duration": info['duration'], 
                         "likes": info['like_count'], 
-                        "dislikes": info['dislike_count'],
+                        "dislikes": dislikes,
                         "link": "https://www.youtube.com/watch?v=" +  info['id'],
                         "author": author
                         }
@@ -151,12 +160,18 @@ class music(commands.Cog):
                     except KeyError:
                         creator = entry['uploader_id']
 
+                    try:
+                        dislikes = entry['dislike_count']
+                    
+                    except KeyError:
+                        dislikes = "Hidden"
+
                     output.append({"track": entry['url'],
                                    "title": entry['title'],
                                    "artist": creator, 
                                    "duration": entry['duration'], 
                                    "likes": entry['like_count'], 
-                                   "dislikes": entry['dislike_count'],
+                                   "dislikes": dislikes,
                                    "link": "https://www.youtube.com/watch?v=" +  entry['id'],
                                    "author": author
                                 }
@@ -381,7 +396,7 @@ class music(commands.Cog):
                 music_field.add_field(name = "Loop turn on!", value = f"You really like ***this*** song, {ctx.author.mention}?")
                 songs = self.songs_from_string(conn.execute(f"SELECT queued_songs FROM music WHERE guild_id = {ctx.guild.id}").fetchall()[0][0])
 
-                if ctx.voice_client.is_playing() or ctx.voice_client.is_paused and self.songs.empty():
+                if ctx.voice_client.is_playing() or ctx.voice_client.is_paused and songs.empty():
                     conn.execute("UPDATE music SET queued_songs = ? WHERE guild_id = ?", (conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0], ctx.guild.id))
                     conn.commit()
                     conn.close()

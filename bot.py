@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import sqlite3 as sqlite
 import random as random
 import apraw
+import socket
 #from discord_slash import SlashCommand
 
 load_dotenv()
@@ -99,7 +100,7 @@ async def changePrefix(ctx, prefix):
 @bot.command(name = "ping")
 async def ping(ctx):
     latency = int(bot.latency * 1000)
-    ping_field = discord.Embed(colour = discord.Colour(0xFDED32), title = "Pong")
+    ping_field = discord.Embed(colour = discord.Colour(0xFDED32), title = f"Pong from {socket.gethostname()}")
     ping_field.add_field(name = f"to {ctx.guild}", value = f"{latency}ms", inline = False)
     await ctx.send(embed = ping_field)
 
