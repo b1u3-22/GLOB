@@ -37,7 +37,7 @@ class reddit(commands.Cog):
     async def birb(self, ctx):
         subreddit = await self.reddit.subreddit("Birbs")
         post = await subreddit.random()
-        while not (post.url.startswith("https://i.redd.it") and post.url.endswith(".jpg")):
+        while not ((post.url.startswith("https://i.redd.it") or post.url.startswith("https://v.redd.it") or post.url.startswith("https://i.imgur.com")) or (post.url.endswith(".gif") or post.url.endswith(".jpg"))):
             post = await subreddit.random()
 
         await ctx.send(post.url)
