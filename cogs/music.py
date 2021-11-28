@@ -1,3 +1,4 @@
+import re
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import has_permissions
@@ -7,7 +8,13 @@ from youtube_dl import YoutubeDL
 from discord import FFmpegPCMAudio
 import asyncio
 import datetime
+from lyricsgenius import Genius
+from dotenv import load_dotenv
+import os
 #from discord_slash import cog_ext, SlashContext
+
+load_dotenv()
+GENIUS_TOKEN = os.getenv("GENIUS_TOKEN")
 
 class music(commands.Cog):
     def __init__(self, bot):
@@ -20,6 +27,7 @@ class music(commands.Cog):
         conn.execute("CREATE TABLE IF NOT EXISTS music(id INTEGER PRIMARY KEY, guild_id INTEGER NOT NULL, current_song TEXT, queued_songs TEXT, loop INTEGER NOT NULL)")
         conn.commit()
         conn.close()
+        self.lyrics_finder = Genius(GENIUS_TOKEN)
 
     def songs_to_string(self, songs):
         output = ""
@@ -688,6 +696,34 @@ class music(commands.Cog):
 
         conn.close()
         await ctx.send(embed = music_field)
+
+
+
+    @commands.command()
+    async def lyrics(self, ctx):
+        music_field = discord.Embed(colour = discord.Colour(0xFDED32))
+        music_field.set_author(name = "𝓜𝓾𝓼𝓲𝓬")
+        conn = sqlite.connect("data/internal.db")
+        current_song = self.song_from_string(conn.execute("SELECT current_song FROM music WHERE guild_id = ?", (ctx.guild.id, )).fetchall()[0][0])
+        conn.close()
+        # 'track': song[1], 'title': song[2], 'artist': song[3], 'duration': song[4], 'likes': song[5], 'dislikes': song[6], 'link': song[7], 'author': song[8]
+        title = current_song['title']
+        strings_to_erase = re.findall(r"([([].+?[])])", title)
+        for string in strings_to_erase:
+            print(string)
+            title = title.replace(string, '')
+
+        music_field.title = f"Lyrics for {title}"
+        lyrics = self.lyrics_finder.search_song(title).lyrics
+        words = list(filter(None, re.split(r"[[].+?[]]", lyrics)))
+        titles = list(filter(None, re.findall(r"[[].+?[]]", lyrics)))
+
+        for i in range(len(titles)):
+            music_field.add_field(name = f"{titles[i]}", value = f"{words[i]}", inline=False)
+            #music_field.remove_field(index=0)
+
+        await ctx.send(embed = music_field)
+
 
 # return {"track": info['entries'][0]['url'], "title": info['entries'][0]['title'], "artist": info['entries'][0]['creator'], "duration": info['entries'][0]['duration'], "likes": info['entries'][0]['like_count'], "dislikes": info['entries'][0]['dislike_count']}
 
