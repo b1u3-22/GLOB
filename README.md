@@ -50,6 +50,9 @@
   * `nano .env`
   * Things needed in .env:
     * `DISCORD_TOKEN`
+  * If you want to use the `lyrics` command from the `music` *cog*:
+    * `GENIUS_TOKEN`
+      * Token generated in [Genius API Clients](https://genius.com/api-clients)
   * If you are using the `reddit` *cog*:
     * `REDDIT_USERNAME`
       * Username of your Reddit Account
