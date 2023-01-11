@@ -1,8 +1,9 @@
-name: Build and push image to GHCR and Dockerhub
+name: Build and push image to GHCR
 
 on:
-  release:
-    types: [published, created, edited, released]
+  push:
+    branches:
+      - 'latest'
 
 jobs:
   docker:
