@@ -34,7 +34,7 @@ jobs:
           tags: ${{ steps.build_image.outputs.tags }}
           registry: ghcr.io/${{ github.actor }}
           username: ${{ github.actor }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
       -
         name: Push To Dockerhub
         id: push_to_dockerhub
