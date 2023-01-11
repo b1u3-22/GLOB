@@ -106,23 +106,25 @@ class music(commands.Cog):
                 with YoutubeDL(self.YTDL_OPTIONS) as ydl:
                     info = ydl.extract_info(f"ytsearch:{song}", download = False)['entries'][0]
 
-            try:
-                creator = info['creator']
+            print(info)
 
+            try:
+                likes = info["like_count"]
+            
             except KeyError:
-                creator = info['uploader_id']
+                likes = "Unavailable"
 
             try:
                 dislikes = info['dislike_count']
             
             except KeyError:
-                dislikes = "Hidden"
+                dislikes = "Unavailable"
 
             return {"track": info['url'],
                     "title": info['title'],
-                    "artist": creator, 
+                    "artist": info['uploader'], 
                     "duration": info['duration'], 
-                    "likes": info['like_count'], 
+                    "likes": likes, 
                     "dislikes": dislikes,
                     "link": "https://www.youtube.com/watch?v=" +  info['id'],
                     "author": author
